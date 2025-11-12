@@ -1,0 +1,188 @@
+# Inventory Management System - Setup Commands
+
+## Quick Start (Development)
+
+```bash
+# 1. Install dependencies
+npm install
+# or
+pnpm install
+
+# 2. Copy environment file
+cp .env.example .env
+
+# 3. Edit .env file
+# Set INVENTORY_DATABASE_URL to your PostgreSQL connection string
+# Set ENABLE_JWT_AUTH=true or false depending on your needs
+# Set JWT_SECRET to your secret key
+
+# 4. Generate Prisma Client
+npx prisma generate
+
+# 5. Run database migrations
+npx prisma migrate dev --name init
+
+# 6. Seed the database
+npm run prisma:seed
+
+# 7. Start development server
+npm run dev
+```
+
+## Database Setup
+
+```bash
+# Create a new migration
+npx prisma migrate dev --name <migration_name>
+
+# Apply migrations (production)
+npx prisma migrate deploy
+
+# Reset database (⚠️ DELETES ALL DATA)
+npx prisma migrate reset
+
+# Open Prisma Studio (Database GUI)
+npx prisma studio
+
+# Generate Prisma Client
+npx prisma generate
+```
+
+## Seeding
+
+```bash
+# Seed enums and core data
+npm run prisma:seed
+
+# Seed only enums
+npx tsx prisma/seed_enums.ts
+
+# Seed only core data
+npx tsx prisma/seed_core_data.ts
+```
+
+## Development
+
+```bash
+# Start development server with hot reload
+npm run dev
+
+# Run linter
+npm run lint
+
+# Fix linting issues
+npm run lint:fix
+```
+
+## Production Build
+
+```bash
+# Build TypeScript to JavaScript
+npm run build
+
+# Start production server
+npm start
+```
+
+## Docker (Optional)
+
+```bash
+# Build Docker image
+docker build -t inventory-backend .
+
+# Run container
+docker run -p 5000:5000 --env-file .env inventory-backend
+```
+
+## Environment Variables
+
+```env
+# Required
+INVENTORY_DATABASE_URL=postgresql://user:password@localhost:5432/inventory_db
+
+# JWT Configuration
+ENABLE_JWT_AUTH=true
+JWT_SECRET=8f7b3a2c9d4e6f8a0b1c2d3e4f5g6h7i
+JWT_EXPIRES_IN=8h
+
+# Optional
+PORT=5000
+NODE_ENV=development
+REDIS_URL=redis://localhost:6379
+ENABLE_CACHE=true
+```
+
+## Troubleshooting
+
+### Database Connection Issues
+```bash
+# Check PostgreSQL is running
+pg_isready
+
+# Test connection
+psql -U postgres -d inventory_db
+```
+
+### Prisma Issues
+```bash
+# Clear Prisma cache
+rm -rf node_modules/.prisma
+
+# Regenerate Prisma Client
+npx prisma generate
+```
+
+### Redis Issues
+```bash
+# Check Redis is running
+redis-cli ping
+
+# If Redis is not needed
+# Set ENABLE_CACHE=false in .env
+```
+
+## Testing JWT Authentication
+
+### With JWT Enabled (ENABLE_JWT_AUTH=true)
+
+```bash
+# 1. Get JWT token from HR Auth service
+curl -X POST http://localhost:3002/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"password"}'
+
+# 2. Use token in requests
+curl http://localhost:5000/api/v1/admin/items \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+### With JWT Disabled (ENABLE_JWT_AUTH=false)
+
+```bash
+# No authentication required
+curl http://localhost:5000/api/v1/admin/items
+```
+
+## Health Check
+
+```bash
+# Check if server is running
+curl http://localhost:5000/health
+```
+
+## Common Commands
+
+```bash
+# View logs
+tail -f logs/inventory.log
+
+# Check TypeScript compilation
+npm run build
+
+# Format code (if prettier is configured)
+npm run format
+```
+
+---
+
+For more information, see README.md
