@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import config from './config';
 import routes from './routes';
 import { errorHandler, notFoundHandler } from './middlewares/errorHandler';
+import { apiLimiter } from './middlewares/rateLimit';
 import logger from './logger';
 
 /**
@@ -42,6 +43,11 @@ const createApp = (): Application => {
     logger.info(`[${req.method}] ${req.path}`);
     next();
   });
+
+  /**
+   * Rate Limiting
+   */
+  app.use('/api', apiLimiter);
 
   /**
    * API Routes

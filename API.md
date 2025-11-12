@@ -274,11 +274,38 @@ When an access token expires, use the `/auth/refresh` endpoint with the refresh 
 
 ## Rate Limiting
 
-Rate limiting is configurable via environment variables:
+The API implements multiple layers of rate limiting to prevent abuse:
+
+### General API Rate Limit
 - Window: 15 minutes (configurable via `RATE_LIMIT_WINDOW_MS`)
 - Max Requests: 100 per window (configurable via `RATE_LIMIT_MAX_REQUESTS`)
+- Applies to: All `/api/*` endpoints
 
-When rate limit is exceeded, the API will respond with `429 Too Many Requests`.
+### Authentication Routes Rate Limit
+- Window: 15 minutes
+- Max Requests: 5 per window
+- Applies to: `/auth/register`, `/auth/login`, `/auth/refresh`
+- Purpose: Prevent brute force attacks
+
+### Authenticated Routes Rate Limit
+- Window: 15 minutes
+- Max Requests: 100 per window
+- Applies to: `/auth/me`, `/auth/logout`, and other authenticated endpoints
+
+### Rate Limit Response
+When rate limit is exceeded, the API responds with `429 Too Many Requests`:
+
+```json
+{
+  "success": false,
+  "message": "Too many requests, please try again later."
+}
+```
+
+Rate limit information is included in response headers:
+- `RateLimit-Limit`: Maximum requests allowed in the window
+- `RateLimit-Remaining`: Requests remaining in the current window
+- `RateLimit-Reset`: Time when the window resets (Unix timestamp)
 
 ---
 

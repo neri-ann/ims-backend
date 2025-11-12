@@ -209,7 +209,7 @@ ims-backend/
 - **CORS**: Configurable cross-origin requests
 - **Input Validation**: express-validator for request validation
 - **Error Handling**: Centralized error handling
-- **Rate Limiting**: (Ready to implement)
+- **Rate Limiting**: Multi-layer rate limiting (general, auth, authenticated)
 
 ## 🔑 Authentication Flow
 
