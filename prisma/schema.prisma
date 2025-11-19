@@ -15,12 +15,12 @@ datasource db {
 // ENUMS
 // ============================================================================
 
-enum ItemStatus {
+enum item_status {
   ACTIVE
   INACTIVE
 }
 
-enum InventoryStatus {
+enum inventory_status {
   INACTIVE
   AVAILABLE
   LOW_STOCK
@@ -32,50 +32,50 @@ enum InventoryStatus {
   DISPOSED
 }
 
-enum BusStatus {
+enum bus_status {
   ACTIVE
   DECOMMISSIONED
   UNDER_MAINTENANCE
 }
 
-enum BusType {
+enum bus_type {
   AIRCONDITIONED
   ORDINARY
 }
 
-enum BusCondition {
+enum bus_condition {
   BRAND_NEW
   SECOND_HAND
 }
 
-enum BusSource {
+enum bus_source {
   DEALERSHIP
   AUCTION
   PRIVATE_INDIVIDUAL
   COMPANY_FLEET
 }
 
-enum AcquisitionMethod {
+enum acquisition_method {
   PURCHASED
   LEASED
   DONATED
 }
 
-enum RegistrationStatus {
+enum registration_status {
   REGISTERED
   NOT_REGISTERED
   NEEDS_RENEWAL
   EXPIRED
 }
 
-enum DisposalStatus {
+enum disposal_status {
   PENDING
   APPROVED
   REJECTED
   COMPLETED
 }
 
-enum DisposalMethod {
+enum disposal_method {
   SOLD
   SCRAPPED
   DONATED
@@ -83,7 +83,7 @@ enum DisposalMethod {
   WRITTEN_OFF
 }
 
-enum OrderStatus {
+enum order_status {
   PENDING
   IN_PROGRESS
   COMPLETED
@@ -97,520 +97,493 @@ enum OrderStatus {
 // 1. ITEM MANAGEMENT (Core)
 // ============================================================================
 
-model Category {
-  id           Int         @id @default(autoincrement())
-  categoryCode String      @unique
-  categoryName String
-  description  String?     @db.Text
+model category {
+  id            Int       @id @default(autoincrement())
+  category_code String    @unique
+  category_name String
+  description   String?   @db.Text
 
   // Audit Trail
-  createdBy    String?
-  createdAt    DateTime    @default(now())
-  updatedBy    String?
-  updatedAt    DateTime    @updatedAt
-  deletedBy    String?
-  deletedAt    DateTime?
-  isDeleted    Boolean     @default(false)
+  created_by    String?
+  created_at    DateTime  @default(now())
+  updated_by    String?
+  updated_at    DateTime  @updatedAt
+  deleted_by    String?
+  deleted_at    DateTime?
+  is_deleted    Boolean   @default(false)
 
   // Relations
-  items        Item[]
+  items         item[]
 
-  @@index([categoryCode])
-  @@index([isDeleted])
+  @@index([category_code])
+  @@index([is_deleted])
 }
 
-model UnitMeasure {
-  id           Int            @id @default(autoincrement())
-  unitCode     String         @unique
-  unitName     String
-  abbreviation String?
-  description  String?        @db.Text
+model unit_measure {
+  id             Int             @id @default(autoincrement())
+  unit_code      String          @unique
+  unit_name      String
+  abbreviation   String?
+  description    String?         @db.Text
 
   // Audit Trail
-  createdBy    String?
-  createdAt    DateTime       @default(now())
-  updatedBy    String?
-  updatedAt    DateTime       @updatedAt
-  deletedBy    String?
-  deletedAt    DateTime?
-  isDeleted    Boolean        @default(false)
+  created_by     String?
+  created_at     DateTime        @default(now())
+  updated_by     String?
+  updated_at     DateTime        @updatedAt
+  deleted_by     String?
+  deleted_at     DateTime?
+  is_deleted     Boolean         @default(false)
 
   // Relations
-  items        Item[]
-  supplierItems SupplierItem[]
+  items          item[]
+  supplier_items supplier_item[]
 
-  @@index([unitCode])
-  @@index([isDeleted])
+  @@index([unit_code])
+  @@index([is_deleted])
 }
 
-model Item {
-  id           Int           @id @default(autoincrement())
-  itemCode     String        @unique
-  itemName     String
-  categoryId   Int
-  unitId       Int
-  status       ItemStatus    @default(ACTIVE)
-  description  String?       @db.Text
+model item {
+  id          Int          @id @default(autoincrement())
+  item_code   String       @unique
+  item_name   String
+  category_id Int
+  unit_id     Int
+  status      item_status  @default(ACTIVE)
+  description String?      @db.Text
 
   // Audit Trail
-  createdBy    String?
-  createdAt    DateTime      @default(now())
-  updatedBy    String?
-  updatedAt    DateTime      @updatedAt
-  deletedBy    String?
-  deletedAt    DateTime?
-  isDeleted    Boolean       @default(false)
+  created_by  String?
+  created_at  DateTime     @default(now())
+  updated_by  String?
+  updated_at  DateTime     @updatedAt
+  deleted_by  String?
+  deleted_at  DateTime?
+  is_deleted  Boolean      @default(false)
 
   // Relations
-  category         Category           @relation(fields: [categoryId], references: [id])
-  unit             UnitMeasure        @relation(fields: [unitId], references: [id])
-  supplierItems    SupplierItem[]
-  stocks           Stock[]
-  disposals        Disposal[]
+  category       category        @relation(fields: [category_id], references: [id])
+  unit           unit_measure    @relation(fields: [unit_id], references: [id])
+  supplier_items supplier_item[]
+  stocks         stock[]
+  disposals      disposal[]
 
-  @@index([itemCode])
-  @@index([categoryId])
-  @@index([unitId])
-  @@index([status, isDeleted])
-  @@index([isDeleted])
+  @@index([item_code])
+  @@index([category_id])
+  @@index([unit_id])
+  @@index([status, is_deleted])
+  @@index([is_deleted])
 }
 
 // ============================================================================
 // 2. SUPPLIER MANAGEMENT
 // ============================================================================
 
-model Supplier {
-  id            Int          @id @default(autoincrement())
-  supplierCode  String       @unique
-  supplierName  String
-  contactNumber String?
-  email         String?
-  street        String?
-  barangay      String?
-  city          String?
-  province      String?
-  status        ItemStatus   @default(ACTIVE)
-  description   String?      @db.Text
+model supplier {
+  id             Int             @id @default(autoincrement())
+  supplier_code  String          @unique
+  supplier_name  String
+  contact_number String?
+  email          String?
+  street         String?
+  barangay       String?
+  city           String?
+  province       String?
+  status         item_status     @default(ACTIVE)
+  description    String?         @db.Text
 
   // Audit Trail
-  createdBy     String?
-  createdAt     DateTime     @default(now())
-  updatedBy     String?
-  updatedAt     DateTime     @updatedAt
-  deletedBy     String?
-  deletedAt     DateTime?
-  isDeleted     Boolean      @default(false)
+  created_by     String?
+  created_at     DateTime        @default(now())
+  updated_by     String?
+  updated_at     DateTime        @updatedAt
+  deleted_by     String?
+  deleted_at     DateTime?
+  is_deleted     Boolean         @default(false)
 
   // Relations
-  supplierItems SupplierItem[]
+  supplier_items supplier_item[]
 
-  @@index([supplierCode])
-  @@index([status, isDeleted])
+  @@index([supplier_code])
+  @@index([status, is_deleted])
 }
 
-model SupplierItem {
-  supplierId        Int
-  itemId            Int
-  supplierUnitId    Int
-  conversionAmount  Decimal  @db.Decimal(12, 4)
-  unitPrice         Decimal  @db.Decimal(12, 2)
+model supplier_item {
+  supplier_id       Int
+  item_id           Int
+  supplier_unit_id  Int
+  conversion_amount Decimal  @db.Decimal(12, 4)
+  unit_price        Decimal  @db.Decimal(12, 2)
   description       String?  @db.Text
 
   // Audit Trail
-  createdBy         String?
-  createdAt         DateTime @default(now())
-  updatedBy         String?
-  updatedAt         DateTime @updatedAt
-  deletedBy         String?
-  deletedAt         DateTime?
-  isDeleted         Boolean  @default(false)
+  created_by        String?
+  created_at        DateTime @default(now())
+  updated_by        String?
+  updated_at        DateTime @updatedAt
+  deleted_by        String?
+  deleted_at        DateTime?
+  is_deleted        Boolean  @default(false)
 
   // Relations
-  supplier          Supplier     @relation(fields: [supplierId], references: [id])
-  item              Item         @relation(fields: [itemId], references: [id])
-  supplierUnit      UnitMeasure  @relation(fields: [supplierUnitId], references: [id])
+  supplier          supplier     @relation(fields: [supplier_id], references: [id])
+  item              item         @relation(fields: [item_id], references: [id])
+  supplier_unit     unit_measure @relation(fields: [supplier_unit_id], references: [id])
 
-  @@unique([supplierId, itemId])
-  @@index([supplierId])
-  @@index([itemId])
-  @@index([isDeleted])
+  @@unique([supplier_id, item_id])
+  @@index([supplier_id])
+  @@index([item_id])
+  @@index([is_deleted])
 }
 
 // ============================================================================
 // 3. STOCK MANAGEMENT
 // ============================================================================
 
-model Stock {
-  id            Int             @id @default(autoincrement())
-  itemId        Int
-  currentStock  Decimal         @db.Decimal(12, 2) @default(0)
-  reorderLevel  Decimal         @db.Decimal(12, 2) @default(0)
-  status        InventoryStatus @default(INACTIVE)
+model stock {
+  id            Int              @id @default(autoincrement())
+  item_id       Int
+  current_stock Decimal          @db.Decimal(12, 2) @default(0)
+  reorder_level Decimal          @db.Decimal(12, 2) @default(0)
+  status        inventory_status @default(INACTIVE)
 
   // Audit Trail
-  createdBy     String?
-  createdAt     DateTime        @default(now())
-  updatedBy     String?
-  updatedAt     DateTime        @updatedAt
-  deletedBy     String?
-  deletedAt     DateTime?
-  isDeleted     Boolean         @default(false)
+  created_by    String?
+  created_at    DateTime         @default(now())
+  updated_by    String?
+  updated_at    DateTime         @updatedAt
+  deleted_by    String?
+  deleted_at    DateTime?
+  is_deleted    Boolean          @default(false)
 
   // Relations
-  item          Item            @relation(fields: [itemId], references: [id])
-  batches       Batch[]
-  disposals     Disposal[]
-  buses         Bus[]
+  item          item             @relation(fields: [item_id], references: [id])
+  batches       batch[]
+  disposals     disposal[]
+  buses         bus[]
 
-  @@unique([itemId])
-  @@index([itemId])
-  @@index([status, isDeleted])
-  @@index([currentStock])
+  @@unique([item_id])
+  @@index([item_id])
+  @@index([status, is_deleted])
+  @@index([current_stock])
 }
 
-model Batch {
-  id                Int      @id @default(autoincrement())
-  stockId           Int
-  batchNumber       String?
-  usableQuantity    Decimal  @db.Decimal(12, 2) @default(0)
-  defectiveQuantity Decimal  @db.Decimal(12, 2) @default(0)
-  missingQuantity   Decimal  @db.Decimal(12, 2) @default(0)
-  expirationDate    DateTime?
-  receivedDate      DateTime @default(now())
-  description       String?  @db.Text
+model batch {
+  id                  Int       @id @default(autoincrement())
+  stock_id            Int
+  batch_number        String?
+  usable_quantity     Decimal   @db.Decimal(12, 2) @default(0)
+  defective_quantity  Decimal   @db.Decimal(12, 2) @default(0)
+  missing_quantity    Decimal   @db.Decimal(12, 2) @default(0)
+  expiration_date     DateTime?
+  received_date       DateTime  @default(now())
+  description         String?   @db.Text
 
   // Audit Trail
-  createdBy         String?
-  createdAt         DateTime @default(now())
-  updatedBy         String?
-  updatedAt         DateTime @updatedAt
-  deletedBy         String?
-  deletedAt         DateTime?
-  isDeleted         Boolean  @default(false)
+  created_by          String?
+  created_at          DateTime  @default(now())
+  updated_by          String?
+  updated_at          DateTime  @updatedAt
+  deleted_by          String?
+  deleted_at          DateTime?
+  is_deleted          Boolean   @default(false)
 
   // Relations
-  stock             Stock @relation(fields: [stockId], references: [id])
-  disposals         Disposal[]
-  externalOrderRef  String?  // Should reference Order.orderCode
-  purchaseRequestRef String? // Should reference PurchaseRequest.requestCode
+  stock               stock     @relation(fields: [stock_id], references: [id])
+  disposals           disposal[]
+  external_order_ref  String?   // Should reference order.order_code
+  purchase_request_ref String?  // Should reference purchase_request.request_code
 
-  @@index([stockId])
-  @@index([externalOrderRef])
-  @@index([batchNumber])
-  @@index([receivedDate])
-  @@index([expirationDate])
-  @@index([purchaseRequestRef])
-  @@index([isDeleted])
+  @@index([stock_id])
+  @@index([external_order_ref])
+  @@index([batch_number])
+  @@index([received_date])
+  @@index([expiration_date])
+  @@index([purchase_request_ref])
+  @@index([is_deleted])
 }
 
 // ============================================================================
 // 4. BUS MANAGEMENT (Fixed Assets - Enhanced for Finance Integration)
 // ============================================================================
 
-model BodyBuilder {
-  id               Int      @id @default(autoincrement())
-  bodyBuilderCode  String   @unique
-  bodyBuilderName  String
-  description      String?  @db.Text
+model body_builder {
+  id                Int      @id @default(autoincrement())
+  body_builder_code String   @unique
+  body_builder_name String
+  description       String?  @db.Text
 
   // Audit Trail
-  createdBy        String?
-  createdAt        DateTime @default(now())
-  updatedBy        String?
-  updatedAt        DateTime @updatedAt
-  deletedBy        String?
-  deletedAt        DateTime?
-  isDeleted        Boolean  @default(false)
+  created_by        String?
+  created_at        DateTime @default(now())
+  updated_by        String?
+  updated_at        DateTime @updatedAt
+  deleted_by        String?
+  deleted_at        DateTime?
+  is_deleted        Boolean  @default(false)
 
   // Relations
-  buses            Bus[]
+  buses             bus[]
 
-  @@index([bodyBuilderCode])
-  @@index([isDeleted])
+  @@index([body_builder_code])
+  @@index([is_deleted])
 }
 
-model Manufacturer {
-  id               Int      @id @default(autoincrement())
-  manufacturerCode String   @unique
-  manufacturerName String
-  description      String?  @db.Text
+model manufacturer {
+  id                 Int      @id @default(autoincrement())
+  manufacturer_code  String   @unique
+  manufacturer_name  String
+  description        String?  @db.Text
 
   // Audit Trail
-  createdBy        String?
-  createdAt        DateTime @default(now())
-  updatedBy        String?
-  updatedAt        DateTime @updatedAt
-  deletedBy        String?
-  deletedAt        DateTime?
-  isDeleted        Boolean  @default(false)
+  created_by         String?
+  created_at         DateTime @default(now())
+  updated_by         String?
+  updated_at         DateTime @updatedAt
+  deleted_by         String?
+  deleted_at         DateTime?
+  is_deleted         Boolean  @default(false)
 
   // Relations
-  buses            Bus[]
+  buses              bus[]
 
-  @@index([manufacturerCode])
-  @@index([isDeleted])
+  @@index([manufacturer_code])
+  @@index([is_deleted])
 }
 
-model Dealer {
-  id            Int      @id @default(autoincrement())
-  dealerCode    String   @unique
-  dealerName    String
-  contactNumber String?
-  email         String?
-  address       String?  @db.Text
-  description   String?  @db.Text
+model bus {
+  id                        Int                   @id @default(autoincrement())
+  stock_id                  Int?
+  plate_number              String                @unique
+  body_number               String                @unique
+  body_builder_id           Int
+  bus_type                  bus_type
+  manufacturer_id           Int
+  status                    bus_status            @default(ACTIVE)
+  chassis_number            String?
+  engine_number             String?
+  seat_capacity             Int?
+  model                     String?
+  year_model                Int?
+  condition                 bus_condition
+  acquisition_date          DateTime?
+  acquisition_method        acquisition_method
+  warranty_expiration_date  DateTime?
+  registration_status       registration_status?
 
   // Audit Trail
-  createdBy     String?
-  createdAt     DateTime @default(now())
-  updatedBy     String?
-  updatedAt     DateTime @updatedAt
-  deletedBy     String?
-  deletedAt     DateTime?
-  isDeleted     Boolean  @default(false)
+  created_by                String?
+  created_at                DateTime              @default(now())
+  updated_by                String?
+  updated_at                DateTime              @updatedAt
+  deleted_by                String?
+  deleted_at                DateTime?
+  is_deleted                Boolean               @default(false)
 
   // Relations
-  brandNewDetails BrandNewDetails[]
+  stock                     stock?                @relation(fields: [stock_id], references: [id], onDelete: SetNull)
+  body_builder              body_builder          @relation(fields: [body_builder_id], references: [id])
+  manufacturer              manufacturer          @relation(fields: [manufacturer_id], references: [id])
+  second_hand_details       second_hand_details?
+  brand_new_details         brand_new_details?
+  disposals                 disposal[]
 
-  @@index([dealerCode])
-  @@index([isDeleted])
-}
-
-model Bus {
-  id                      Int               @id @default(autoincrement())
-  stockId                 Int?
-  plateNumber             String            @unique
-  bodyNumber              String            @unique
-  bodyBuilderId           Int
-  busType                 BusType
-  manufacturerId          Int
-  status                  BusStatus         @default(ACTIVE)
-  chassisNumber           String?
-  engineNumber            String?
-  seatCapacity            Int?
-  model                   String?
-  yearModel               Int?
-  condition               BusCondition
-  acquisitionDate         DateTime?
-  acquisitionMethod       AcquisitionMethod
-  warrantyExpirationDate  DateTime?
-  registrationStatus      RegistrationStatus?
-
-  // Audit Trail
-  createdBy               String?
-  createdAt               DateTime          @default(now())
-  updatedBy               String?
-  updatedAt               DateTime          @updatedAt
-  deletedBy               String?
-  deletedAt               DateTime?
-  isDeleted               Boolean           @default(false)
-
-  // Relations
-  stock                   Stock?          @relation(fields: [stockId], references: [id], onDelete: SetNull)
-  bodyBuilder             BodyBuilder     @relation(fields: [bodyBuilderId], references: [id])
-  manufacturer            Manufacturer    @relation(fields: [manufacturerId], references: [id])
-  secondHandDetails       SecondHandDetails?
-  brandNewDetails         BrandNewDetails?
-  disposals               Disposal[]
-
-  @@index([plateNumber])
-  @@index([bodyNumber])
-  @@index([status, isDeleted])
+  @@index([plate_number])
+  @@index([body_number])
+  @@index([status, is_deleted])
   @@index([condition])
-  @@index([isDeleted])
+  @@index([is_deleted])
 }
 
-model SecondHandDetails {
-  id                    Int         @id @default(autoincrement())
-  busId                 Int         @unique
-  previousOwner         String?
-  previousOwnerContact  String?
-  source                BusSource
-  odometerReading       Decimal?    @db.Decimal(12, 2)
-  lastRegistrationDate  DateTime?
-  description           String?     @db.Text
+model second_hand_details {
+  id                      Int        @id @default(autoincrement())
+  bus_id                  Int        @unique
+  previous_owner          String?
+  previous_owner_contact  String?
+  source                  bus_source
+  odometer_reading        Decimal?   @db.Decimal(12, 2)
+  last_registration_date  DateTime?
+  description             String?    @db.Text
 
   // Audit Trail
-  createdBy             String?
-  createdAt             DateTime    @default(now())
-  updatedBy             String?
-  updatedAt             DateTime    @updatedAt
-  deletedBy             String?
-  deletedAt             DateTime?
-  isDeleted             Boolean     @default(false)
+  created_by              String?
+  created_at              DateTime   @default(now())
+  updated_by              String?
+  updated_at              DateTime   @updatedAt
+  deleted_by              String?
+  deleted_at              DateTime?
+  is_deleted              Boolean    @default(false)
 
   // Relations
-  bus                   Bus         @relation(fields: [busId], references: [id], onDelete: Cascade)
+  bus                     bus        @relation(fields: [bus_id], references: [id], onDelete: Cascade)
 
-  @@index([busId])
+  @@index([bus_id])
   @@index([source])
-  @@index([isDeleted])
+  @@index([is_deleted])
 }
 
-model BrandNewDetails {
-  id        Int      @id @default(autoincrement())
-  busId     Int      @unique
-  dealerId  Int
+model brand_new_details {
+  id             Int      @id @default(autoincrement())
+  bus_id         Int      @unique
+  dealer_name    String?
+  dealer_contact String?
 
   // Audit Trail
-  createdBy String?
-  createdAt DateTime @default(now())
-  updatedBy String?
-  updatedAt DateTime @updatedAt
-  deletedBy String?
-  deletedAt DateTime?
-  isDeleted Boolean  @default(false)
+  created_by     String?
+  created_at     DateTime @default(now())
+  updated_by     String?
+  updated_at     DateTime @updatedAt
+  deleted_by     String?
+  deleted_at     DateTime?
+  is_deleted     Boolean  @default(false)
 
   // Relations
-  bus       Bus      @relation(fields: [busId], references: [id], onDelete: Cascade)
-  dealer    Dealer   @relation(fields: [dealerId], references: [id])
+  bus            bus      @relation(fields: [bus_id], references: [id], onDelete: Cascade)
 
-  @@index([busId])
-  @@index([dealerId])
-  @@index([isDeleted])
+  @@index([bus_id])
+  @@index([is_deleted])
 }
 
 // ============================================================================
 // 5. DISPOSAL MANAGEMENT (Physical Asset Lifecycle - Enhanced for Finance)
 // ============================================================================
 
-model Disposal {
-  id               Int            @id @default(autoincrement())
-  disposalCode     String         @unique
-  itemId           Int?
-  busId            Int?
-  batchId          Int?
-  stockId          Int?
-  quantity         Decimal?       @db.Decimal(12, 2)
-  disposalDate     DateTime
-  disposalMethod   DisposalMethod
-  description      String?        @db.Text
-  estimatedValue   Decimal?       @db.Decimal(12, 2)
-  actualValue      Decimal?       @db.Decimal(12, 2)
-  disposalStatus   DisposalStatus @default(PENDING)
+model disposal {
+  id               Int              @id @default(autoincrement())
+  disposal_code    String           @unique
+  item_id          Int?
+  bus_id           Int?
+  batch_id         Int?
+  stock_id         Int?
+  quantity         Decimal?         @db.Decimal(12, 2)
+  disposal_date    DateTime
+  disposal_method  disposal_method
+  description      String?          @db.Text
+  estimated_value  Decimal?         @db.Decimal(12, 2)
+  actual_value     Decimal?         @db.Decimal(12, 2)
+  disposal_status  disposal_status  @default(PENDING)
 
   // Audit Trail
-  createdBy        String?
-  createdAt        DateTime       @default(now())
-  updatedBy        String?
-  updatedAt        DateTime       @updatedAt
-  approvedBy       String?
-  approvedAt       DateTime?
-  rejectedBy       String?
-  rejectedAt       DateTime?
-  deletedBy        String?
-  deletedAt        DateTime?
-  isDeleted        Boolean        @default(false)
+  created_by       String?
+  created_at       DateTime         @default(now())
+  updated_by       String?
+  updated_at       DateTime         @updatedAt
+  approved_by      String?
+  approved_at      DateTime?
+  rejected_by      String?
+  rejected_at      DateTime?
+  deleted_by       String?
+  deleted_at       DateTime?
+  is_deleted       Boolean          @default(false)
 
   // Relations
-  item             Item?          @relation(fields: [itemId], references: [id])
-  bus              Bus?           @relation(fields: [busId], references: [id], onDelete: Restrict)
-  batch            Batch?         @relation(fields: [batchId], references: [id])
-  stock            Stock?         @relation(fields: [stockId], references: [id])
+  item             item?            @relation(fields: [item_id], references: [id])
+  bus              bus?             @relation(fields: [bus_id], references: [id], onDelete: Restrict)
+  batch            batch?           @relation(fields: [batch_id], references: [id])
+  stock            stock?           @relation(fields: [stock_id], references: [id])
 
-  @@index([disposalCode])
-  @@index([itemId])
-  @@index([busId])
-  @@index([disposalStatus, isDeleted])
-  @@index([disposalDate])
+  @@index([disposal_code])
+  @@index([item_id])
+  @@index([bus_id])
+  @@index([disposal_status, is_deleted])
+  @@index([disposal_date])
 }
 
 // ============================================================================
 // ORDER MANAGEMENT (Moved from Microservices)
 // ============================================================================
 
-model Order {
-  id                    Int         @id @default(autoincrement())
-  orderCode             String      @unique @default(cuid())
-  purchaseRequestRef    String      // Reference to microservice PurchaseRequest.requestCode
-  status                OrderStatus @default(PENDING)
+model order {
+  id                   Int          @id @default(autoincrement())
+  order_code           String       @unique @default(cuid())
+  purchase_request_ref String       // Reference to microservice purchase_request.request_code
+  status               order_status @default(PENDING)
 
   // Stock Reference
-  externalBatchRefs     String?     // JSON array of batch IDs created
+  external_batch_refs  String?      // JSON array of batch IDs created
 
   // Audit Trail
-  createdBy             String?
-  createdAt             DateTime    @default(now())
-  updatedBy             String?
-  updatedAt             DateTime    @updatedAt
-  approvedBy            String?
-  approvedAt            DateTime?
-  closedBy              String?
-  closedAt              DateTime?
-  deletedBy             String?
-  deletedAt             DateTime?
-  isDeleted             Boolean     @default(false)
+  created_by           String?
+  created_at           DateTime     @default(now())
+  updated_by           String?
+  updated_at           DateTime     @updatedAt
+  approved_by          String?
+  approved_at          DateTime?
+  closed_by            String?
+  closed_at            DateTime?
+  deleted_by           String?
+  deleted_at           DateTime?
+  is_deleted           Boolean      @default(false)
 
   // Relations
-  items                 OrderItem[]
+  items                order_item[]
 
-  @@index([orderCode])
-  @@index([purchaseRequestRef])
+  @@index([order_code])
+  @@index([purchase_request_ref])
   @@index([status])
-  @@index([isDeleted])
+  @@index([is_deleted])
 }
 
-model OrderItem {
-  id                    Int      @id @default(autoincrement())
-  orderId               Int
-  externalItemRef       String   // References Item.itemCode from main schema
-  itemName              String   // Denormalized for performance
-  orderedQuantity       Decimal  @db.Decimal(12, 2)
-  orderedUnitPrice      Decimal  @db.Decimal(12, 2)
-  orderedTotalPrice     Decimal  @db.Decimal(12, 2)
+model order_item {
+  id                  Int       @id @default(autoincrement())
+  order_id            Int
+  external_item_ref   String    // References item.item_code from main schema
+  item_name           String    // Denormalized for performance
+  ordered_quantity    Decimal   @db.Decimal(12, 2)
+  ordered_unit_price  Decimal   @db.Decimal(12, 2)
+  ordered_total_price Decimal   @db.Decimal(12, 2)
 
   // Received quantities (for stock creation)
-  receivedQuantity      Decimal? @db.Decimal(12, 2) @default(0)
-  actualUnitPrice       Decimal? @db.Decimal(12, 2)
-  actualTotalPrice      Decimal? @db.Decimal(12, 2)
+  received_quantity   Decimal?  @db.Decimal(12, 2) @default(0)
+  actual_unit_price   Decimal?  @db.Decimal(12, 2)
+  actual_total_price  Decimal?  @db.Decimal(12, 2)
 
   // For ISSUE tracking (needed for refund/replacement)
-  missingQuantity       Decimal? @db.Decimal(12, 2) @default(0)
-  damagedQuantity       Decimal? @db.Decimal(12, 2) @default(0)
+  missing_quantity    Decimal?  @db.Decimal(12, 2) @default(0)
+  damaged_quantity    Decimal?  @db.Decimal(12, 2) @default(0)
 
   // For stock batch creation
-  batchNumber           String?
-  expirationDate        DateTime?
-
-  remarks               String?  @db.Text
+  batch_number        String?
+  expiration_date     DateTime?
+  remarks             String?   @db.Text
 
   // Audit Trail
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
-  isDeleted             Boolean  @default(false)
+  created_at          DateTime  @default(now())
+  updated_at          DateTime  @updatedAt
+  is_deleted          Boolean   @default(false)
 
   // Relations
-  order                 Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order               order     @relation(fields: [order_id], references: [id], onDelete: Cascade)
 
-  @@index([orderId])
-  @@index([externalItemRef])
-  @@index([isDeleted])
+  @@index([order_id])
+  @@index([external_item_ref])
+  @@index([is_deleted])
 }
 
 // ============================================================================
 // UNIFIED ATTACHMENT MANAGEMENT
 // ============================================================================
 
-model Attachment {
-  id              Int      @id @default(autoincrement())
-  entityType      String   // e.g., "BUS", "ORDER", "DISPOSAL", "PURCHASE_REQUEST"
-  entityId        String   // The ID of the related entity (busId, orderCode, etc.)
-  fileName        String
-  fileType        String   // jpeg, jpg, png, pdf, docx, etc.
-  fileUrl         String
-  fileSize        Int?     // in bytes
-  description     String?  @db.Text
+model attachment {
+  id          Int      @id @default(autoincrement())
+  entity_type String   // e.g., "BUS", "ORDER", "DISPOSAL", "PURCHASE_REQUEST"
+  entity_id   String   // The ID of the related entity (bus_id, order_code, etc.)
+  file_name   String
+  file_type   String   // jpeg, jpg, png, pdf, docx, etc.
+  file_url    String
+  file_size   Int?     // in bytes
+  description String?  @db.Text
 
   // Audit Trail
-  uploadedBy      String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-  isDeleted       Boolean  @default(false)
+  uploaded_by String?
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+  is_deleted  Boolean  @default(false)
 
-  @@index([entityType, entityId])
-  @@index([entityType])
-  @@index([fileType])
-  @@index([isDeleted])
+  @@index([entity_type, entity_id])
+  @@index([entity_type])
+  @@index([file_type])
+  @@index([is_deleted])
 }
 
 // END OF INVENTORY MAIN SCHEMA

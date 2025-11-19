@@ -9,8 +9,10 @@ import { errorHandler } from './middleware/errorHandler';
 
 // Routes
 import adminItemRoutes from './routes/admin/item.routes';
+import adminSupplierRoutes from './routes/admin/supplier.routes';
+import adminSupplierItemRoutes from './routes/admin/supplier-item.routes';
+import adminCategoryRoutes from './routes/admin/category.routes';
 // TODO: Add more routes as you create them:
-// import adminSupplierRoutes from './routes/admin/supplier.routes';
 // import adminStockRoutes from './routes/admin/stock.routes';
 // import adminBusRoutes from './routes/admin/bus.routes';
 // import adminOrderRoutes from './routes/admin/order.routes';
@@ -37,6 +39,11 @@ export const createApp = (): Application => {
   app.use(morgan('combined', {
     stream: morganStream,
   }));
+
+  // Basic rate limiting
+  import('./middleware/rateLimiter').then(m => {
+    app.use(m.rateLimiter);
+  }).catch(() => {});
 
   // Health check
   app.get('/health', (_req, res) => {
@@ -74,6 +81,9 @@ export const createApp = (): Application => {
   
   // Admin routes (Full CRUD + additional actions)
   app.use('/api/v1/admin/items', adminItemRoutes);
+  app.use('/api/v1/admin/suppliers', adminSupplierRoutes);
+  app.use('/api/v1/admin/supplier-items', adminSupplierItemRoutes);
+  app.use('/api/v1/admin/categories', adminCategoryRoutes);
   // TODO: Add more admin routes here:
   // app.use('/api/v1/admin/suppliers', adminSupplierRoutes);
   // app.use('/api/v1/admin/stocks', adminStockRoutes);

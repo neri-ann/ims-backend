@@ -46,21 +46,25 @@ export class ItemService {
     const limit = filters.limit || 20;
     const skip = (page - 1) * limit;
 
-    const where: Prisma.ItemWhereInput = {
-      isDeleted: false,
+    const where: Prisma.itemWhereInput = {
+      is_deleted: false,
       ...(filters.status && { status: filters.status }),
-      ...(filters.categoryId && { categoryId: filters.categoryId }),
+      ...(filters.categoryId && { category_id: filters.categoryId }),
       ...(filters.search && {
         OR: [
-          { itemCode: { contains: filters.search, mode: 'insensitive' } },
-          { itemName: { contains: filters.search, mode: 'insensitive' } },
+          { item_code: { contains: filters.search, mode: 'insensitive' } },
+          { item_name: { contains: filters.search, mode: 'insensitive' } },
         ],
       }),
     };
 
-    const orderBy: Prisma.ItemOrderByWithRelationInput = {
-      [filters.sortBy || 'createdAt']: filters.sortOrder || 'desc',
+    const sortFieldMap: Record<string, string> = {
+      itemCode: 'item_code',
+      itemName: 'item_name',
+      createdAt: 'created_at',
     };
+    const sortField = sortFieldMap[filters.sortBy || 'createdAt'] || 'created_at';
+    const orderBy = { [sortField]: filters.sortOrder || 'desc' } as Prisma.itemOrderByWithRelationInput;
 
     const [items, total] = await Promise.all([
       prisma.item.findMany({
@@ -71,6 +75,11 @@ export class ItemService {
         include: {
           category: true,
           unit: true,
+          _count: {
+            select: {
+              supplier_items: true,
+            },
+          },
         },
       }),
       prisma.item.count({ where }),
@@ -93,11 +102,14 @@ export class ItemService {
    */
   async getItemById(id: number) {
     const item = await prisma.item.findFirst({
-      where: { id, isDeleted: false },
+      where: { id, is_deleted: false },
       include: {
         category: true,
         unit: true,
         stocks: true,
+        _count: {
+          select: { supplier_items: true },
+        },
       },
     });
 
@@ -113,7 +125,7 @@ export class ItemService {
    */
   async getItemByCode(itemCode: string) {
     const item = await prisma.item.findFirst({
-      where: { itemCode, isDeleted: false },
+      where: { item_code: itemCode, is_deleted: false },
       include: {
         category: true,
         unit: true,
@@ -134,24 +146,24 @@ export class ItemService {
   async createItem(data: ItemCreateData, userId: string) {
     // Check if item code already exists
     const existing = await prisma.item.findUnique({
-      where: { itemCode: data.itemCode },
+      where: { item_code: data.itemCode },
     });
 
-    if (existing && !existing.isDeleted) {
+    if (existing && !existing.is_deleted) {
       throw new ConflictError(`Item with code ${data.itemCode} already exists`);
     }
 
     // Verify category exists
     const category = await prisma.category.findFirst({
-      where: { id: data.categoryId, isDeleted: false },
+      where: { id: data.categoryId, is_deleted: false },
     });
     if (!category) {
       throw new BadRequestError('Invalid category ID');
     }
 
     // Verify unit exists
-    const unit = await prisma.unitMeasure.findFirst({
-      where: { id: data.unitId, isDeleted: false },
+    const unit = await prisma.unit_measure.findFirst({
+      where: { id: data.unitId, is_deleted: false },
     });
     if (!unit) {
       throw new BadRequestError('Invalid unit ID');
@@ -159,8 +171,13 @@ export class ItemService {
 
     const item = await prisma.item.create({
       data: {
-        ...data,
-        createdBy: userId,
+        item_code: data.itemCode,
+        item_name: data.itemName,
+        category_id: data.categoryId,
+        unit_id: data.unitId,
+        status: data.status,
+        description: data.description,
+        created_by: userId,
       },
       include: {
         category: true,
@@ -168,7 +185,7 @@ export class ItemService {
       },
     });
 
-    logger.info(`Item created: ${item.itemCode}`, { userId });
+    logger.info(`Item created: ${item.item_code}`, { userId });
     return item;
   }
 
@@ -177,7 +194,7 @@ export class ItemService {
    */
   async updateItem(id: number, data: ItemUpdateData, userId: string) {
     const existing = await prisma.item.findFirst({
-      where: { id, isDeleted: false },
+      where: { id, is_deleted: false },
     });
 
     if (!existing) {
@@ -185,28 +202,34 @@ export class ItemService {
     }
 
     // If updating item code, check for duplicates
-    if (data.itemCode && data.itemCode !== existing.itemCode) {
+    if (data.itemCode && data.itemCode !== existing.item_code) {
       const duplicate = await prisma.item.findFirst({
-        where: { itemCode: data.itemCode, isDeleted: false },
+        where: { item_code: data.itemCode, is_deleted: false },
       });
       if (duplicate) {
         throw new ConflictError(`Item with code ${data.itemCode} already exists`);
       }
     }
 
+  const updateData: Partial<Prisma.itemUncheckedUpdateInput> = {};
+    if (data.itemCode) updateData.item_code = data.itemCode;
+    if (data.itemName) updateData.item_name = data.itemName;
+    if (typeof data.categoryId !== 'undefined') updateData.category_id = data.categoryId;
+    if (typeof data.unitId !== 'undefined') updateData.unit_id = data.unitId;
+    if (typeof data.status !== 'undefined') updateData.status = data.status;
+    if (typeof data.description !== 'undefined') updateData.description = data.description;
+    updateData.updated_by = userId;
+
     const item = await prisma.item.update({
       where: { id },
-      data: {
-        ...data,
-        updatedBy: userId,
-      },
+      data: updateData,
       include: {
         category: true,
         unit: true,
       },
     });
 
-    logger.info(`Item updated: ${item.itemCode}`, { userId });
+    logger.info(`Item updated: ${item.item_code}`, { userId });
     return item;
   }
 
@@ -215,7 +238,7 @@ export class ItemService {
    */
   async deleteItem(id: number, userId: string) {
     const existing = await prisma.item.findFirst({
-      where: { id, isDeleted: false },
+      where: { id, is_deleted: false },
     });
 
     if (!existing) {
@@ -225,13 +248,13 @@ export class ItemService {
     const item = await prisma.item.update({
       where: { id },
       data: {
-        isDeleted: true,
-        deletedBy: userId,
-        deletedAt: new Date(),
+        is_deleted: true,
+        deleted_by: userId,
+        deleted_at: new Date(),
       },
     });
 
-    logger.info(`Item deleted: ${item.itemCode}`, { userId });
+    logger.info(`Item deleted: ${item.item_code}`, { userId });
     return { success: true, message: 'Item deleted successfully' };
   }
 }

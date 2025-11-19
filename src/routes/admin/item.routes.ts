@@ -1,6 +1,6 @@
 /**
  * Item Routes (Admin)
- * RESTful API endpoints for item management
+ * RESTful API endpoints fors item management
  * Requires admin authentication and authorization
  */
 
