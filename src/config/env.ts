@@ -50,7 +50,7 @@ export const config: Config = {
   nodeEnv: process.env.NODE_ENV || 'development',
   baseUrl: process.env.BASE_URL || 'http://localhost:5000',
   
-  databaseUrl: process.env.INVENTORY_DATABASE_URL!,
+  databaseUrl: process.env.INVENTORY_MAIN_DATABASE_URL || process.env.INVENTORY_DATABASE_URL!,
   redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
   enableCache: process.env.ENABLE_CACHE === 'true',
   
@@ -80,7 +80,7 @@ export const config: Config = {
 
 // Validate required environment variables
 const requiredEnvVars = [
-  'INVENTORY_DATABASE_URL',
+  'INVENTORY_MAIN_DATABASE_URL',
 ];
 
 for (const envVar of requiredEnvVars) {
