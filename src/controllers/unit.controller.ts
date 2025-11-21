@@ -5,8 +5,11 @@ import { logger } from '../config/logger';
 export class UnitController {
   async list(_req: Request, res: Response, next: NextFunction) {
     try {
-      const result = await unitService.list();
-      res.json(result);
+      const data = await unitService.list();
+      res.json({
+        success: true,
+        data
+      });
     } catch (error) {
       logger.error('[UnitController] Error listing units:', error);
       next(error);
