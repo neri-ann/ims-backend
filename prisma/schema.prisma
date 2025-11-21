@@ -83,44 +83,44 @@ WRITTEN_OFF
 }
 
 enum order_status {
-  PENDING                           // PR approved, order generated
-  IN_PROGRESS                       // Order list printed
-  COMPLETED                         // All items received
-  PARTIALLY_COMPLETED               // Some items missing/damaged
-  PROCESSING_REFUND                 // Refund underway (synced from Finance)
-  PROCESSING_REPLACEMENT            // Replacement underway (synced from Finance)
-  PROCESSING_REFUND_AND_REPLACEMENT // Mixed refund/replacement (synced from Finance)
-  REFUNDED                          // Refund completed (synced from Finance)
-  REPLACED                          // Replacement completed
-  REFUNDED_AND_REPLACED             // Mixed completed
-  WRITE_OFF                         // Loss absorbed (synced from Finance)
-  CLOSED                            // No further actions
+PENDING                           // PR approved, order generated
+IN_PROGRESS                       // Order list printed
+COMPLETED                         // All items received
+PARTIALLY_COMPLETED               // Some items missing/damaged
+PROCESSING_REFUND                 // Refund underway (synced from Finance)
+PROCESSING_REPLACEMENT            // Replacement underway (synced from Finance)
+PROCESSING_REFUND_AND_REPLACEMENT // Mixed refund/replacement (synced from Finance)
+REFUNDED                          // Refund completed (synced from Finance)
+REPLACED                          // Replacement completed
+REFUNDED_AND_REPLACED             // Mixed completed
+WRITE_OFF                         // Loss absorbed (synced from Finance)
+CLOSED                            // No further actions
 }
 
 enum order_item_status {
-  PENDING                 // PR approved, item in order
-  IN_PROGRESS             // Order list printed
-  COMPLETED               // Item received
-  PARTIALLY_COMPLETED     // Item partially received
-  TO_BE_REFUNDED          // Refund expected (synced from Finance)
-  TO_BE_REPLACED          // Replacement expected (synced from Finance)
-  REFUNDED                // Item refunded (synced from Finance)
-  REPLACED                // Item replaced
-  WRITE_OFF               // Loss absorbed (synced from Finance)
-  CLOSED                  // Item processing complete
+PENDING                 // PR approved, item in order
+IN_PROGRESS             // Order list printed
+COMPLETED               // Item received
+PARTIALLY_COMPLETED     // Item partially received
+TO_BE_REFUNDED          // Refund expected (synced from Finance)
+TO_BE_REPLACED          // Replacement expected (synced from Finance)
+REFUNDED                // Item refunded (synced from Finance)
+REPLACED                // Item replaced
+WRITE_OFF               // Loss absorbed (synced from Finance)
+CLOSED                  // Item processing complete
 }
 
 enum replacement_status {
-  PENDING                 // PR approved, item in order
-  IN_PROGRESS             // Order list printed
-  COMPLETED               // Item received
-  PARTIALLY_COMPLETED     // Item partially received
-  TO_BE_REFUNDED          // Refund expected (synced from Finance)
-  TO_BE_REPLACED          // Replacement expected (synced from Finance)
-  REFUNDED                // Item refunded (synced from Finance)
-  REPLACED                // Item replaced
-  WRITE_OFF               // Loss absorbed (synced from Finance)
-  CLOSED                  // Item processing complete
+PENDING                 // PR approved, item in order
+IN_PROGRESS             // Order list printed
+COMPLETED               // Item received
+PARTIALLY_COMPLETED     // Item partially received
+TO_BE_REFUNDED          // Refund expected (synced from Finance)
+TO_BE_REPLACED          // Replacement expected (synced from Finance)
+REFUNDED                // Item refunded (synced from Finance)
+REPLACED                // Item replaced
+WRITE_OFF               // Loss absorbed (synced from Finance)
+CLOSED                  // Item processing complete
 }
 
 // ============================================================================
@@ -306,16 +306,13 @@ model batch {
 id                  Int       @id @default(autoincrement())
 stock_id            Int
 batch_number        String?
-usable_quantity     Decimal   @db.Decimal(12, 2) @default(0)
-defective_quantity  Decimal   @db.Decimal(12, 2) @default(0)
-missing_quantity    Decimal   @db.Decimal(12, 2) @default(0)
+quantity     Decimal   @db.Decimal(12, 2) @default(0)
 expiration_date     DateTime?
 received_date       DateTime  @default(now())
-description         String?   @db.Text
+remarks         String?   @db.Text
 
-is_replacement      Boolean   @default(false)
+need_replacement      Boolean   @default(false)
 original_batch_id   Int?      // Always points to the very first batch
-replaces_batch_id   Int?      // Points to immediate predecessor
 replacement_status  replacement_status?
 replacement_date    DateTime?
 
@@ -539,9 +536,6 @@ order_code           String       @unique @default(cuid())
 purchase_request_ref String       // Reference to microservice purchase_request.request_code
 status               order_status @default(PENDING)
 
-// Stock Reference
-external_batch_refs  String?      // JSON array of batch IDs created
-
 // Audit Trail
 created_by           String?
 created_at           DateTime     @default(now())
@@ -583,16 +577,7 @@ actual_total_price  Decimal?  @db.Decimal(12, 2)
 missing_quantity    Decimal?  @db.Decimal(12, 2) @default(0)
 damaged_quantity    Decimal?  @db.Decimal(12, 2) @default(0)
 
-supplier_code         String?   // Which supplier this item is from
-supplier_name         String?   // Denormalized for display
 supplier_item_ref     String?   // Supplier's item reference
-supplier_unit_id      String?   // Supplier's unit of measure
-conversion_amount     Decimal?  @db.Decimal(12, 4)  // Conversion ratio
-
-// For stock batch creation
-batch_number        String?
-expiration_date     DateTime?
-remarks             String?   @db.Text
 
 // Audit Trail
 created_at          DateTime  @default(now())

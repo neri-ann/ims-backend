@@ -31,12 +31,14 @@ export class SupplierItemService {
     // Map to frontend expected fields (data array)
     const mapped = data.map((d) => ({
       supplier_id: d.supplier ? d.supplier.supplier_code : undefined,
+      supplier_numeric_id: d.supplier_id, // Include numeric ID for PATCH operations
       supplierName: d.supplier ? d.supplier.supplier_name : undefined,
       item: d.item ? { id: d.item.id, item_id: d.item.item_code, item_name: d.item.item_name } : undefined,
       unit: d.supplier_unit ? { id: d.supplier_unit.id, unit_name: d.supplier_unit.unit_name, abbreviation: d.supplier_unit.abbreviation } : undefined,
       unit_price: d.unit_price,
       conversion_amount: d.conversion_amount,
       note: d.description,
+      description: d.description, // Also include as description for consistency
       date_created: d.created_at,
       date_updated: d.updated_at,
       isdeleted: d.is_deleted,
@@ -94,10 +96,13 @@ export class SupplierItemService {
     const out = {
       id: created.supplier_id ?? undefined,
       supplier_id: created.supplier ? created.supplier.supplier_code : created.supplier_id,
+      supplier_numeric_id: created.supplier_id, // Include numeric ID for frontend
       supplierName: created.supplier?.supplier_name,
+      supplier_unit_id: created.supplier_unit_id, // Include for mapping
+      conversion_amount: created.conversion_amount, // Include for display
       unit_price: created.unit_price,
-      delivery_time: (created as any).delivery_time ?? undefined,
       note: created.description ?? undefined,
+      description: created.description ?? undefined,
       date_updated: created.updated_at,
       updated_at: created.updated_at,
     };

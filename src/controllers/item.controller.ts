@@ -100,15 +100,33 @@ export class ItemController {
       });
 
       const userId = req.user?.sub || 'system';
-      const data: ItemCreateData = req.body;
+      
+      // Map snake_case from frontend to camelCase for service
+      const data: ItemCreateData = {
+        itemCode: req.body.item_code,
+        itemName: req.body.item_name,
+        categoryId: req.body.category_id,
+        unitId: req.body.unit_id,
+        status: req.body.status,
+        description: req.body.description,
+      };
       
       const item = await itemService.createItem(data, userId);
 
-      res.status(201).json({
-        success: true,
-        message: 'Item created successfully',
-        data: item,
-      });
+      // Map response back to frontend expected format
+      const response = {
+        id: item.id,
+        itemCode: item.item_code,
+        itemName: item.item_name,
+        itemCategory: item.category?.category_name,
+        itemUnitMeasure: item.unit?.abbreviation || item.unit?.unit_name,
+        itemStatus: item.status,
+        itemDescription: item.description,
+        date_created: item.created_at,
+        date_updated: item.updated_at,
+      };
+
+      res.status(201).json(response);
     } catch (error) {
       logger.error('[ItemController] Error creating item:', error);
       next(error);
@@ -134,7 +152,16 @@ export class ItemController {
       });
 
       const userId = req.user?.sub || 'system';
-      const data: ItemUpdateData = req.body;
+      
+      // Map snake_case from frontend to camelCase for service
+      const data: ItemUpdateData = {
+        itemCode: req.body.item_code,
+        itemName: req.body.item_name,
+        categoryId: req.body.category_id,
+        unitId: req.body.unit_id,
+        status: req.body.status,
+        description: req.body.description,
+      };
       
       const item = await itemService.updateItem(id, data, userId);
 

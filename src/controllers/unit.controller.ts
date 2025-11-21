@@ -16,7 +16,10 @@ export class UnitController {
   async getById(req: Request, res: Response, next: NextFunction) {
     try {
       const id = Number(req.params.id);
-      if (Number.isNaN(id)) return res.status(400).json({ error: 'Invalid id' });
+      if (Number.isNaN(id)) {
+        res.status(400).json({ error: 'Invalid id' });
+        return;
+      }
       const unit = await unitService.getById(id);
       res.json({ data: unit });
     } catch (error) {

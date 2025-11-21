@@ -7,6 +7,7 @@ import { Prisma } from '@prisma/client';
 import { prisma } from '../config/database';
 import { logger } from '../config/logger';
 import { NotFoundError, BadRequestError, ConflictError } from '../utils/errors';
+import { generateId } from '../lib/idGenerator';
 
 // ===========================
 // Types & Interfaces
@@ -77,7 +78,7 @@ export class ItemService {
           unit: true,
           _count: {
             select: {
-              supplier_items: true,
+              supplier_items: { where: { is_deleted: false } },
             },
           },
         },
@@ -108,7 +109,7 @@ export class ItemService {
         unit: true,
         stocks: true,
         _count: {
-          select: { supplier_items: true },
+          select: { supplier_items: { where: { is_deleted: false } } },
         },
       },
     });
@@ -144,15 +145,6 @@ export class ItemService {
    * Create new item
    */
   async createItem(data: ItemCreateData, userId: string) {
-    // Check if item code already exists
-    const existing = await prisma.item.findUnique({
-      where: { item_code: data.itemCode },
-    });
-
-    if (existing && !existing.is_deleted) {
-      throw new ConflictError(`Item with code ${data.itemCode} already exists`);
-    }
-
     // Verify category exists
     const category = await prisma.category.findFirst({
       where: { id: data.categoryId, is_deleted: false },
@@ -169,13 +161,40 @@ export class ItemService {
       throw new BadRequestError('Invalid unit ID');
     }
 
+    // Check if item name already exists
+    const existingByName = await prisma.item.findFirst({
+      where: { 
+        item_name: data.itemName,
+        is_deleted: false
+      },
+    });
+
+    if (existingByName) {
+      throw new ConflictError(`Item with name "${data.itemName}" already exists`);
+    }
+
+    // Generate item code
+    const itemCode = data.itemCode || await generateId('item', 'ITM');
+
+    // Check if generated code already exists (edge case)
+    const existingByCode = await prisma.item.findFirst({
+      where: { 
+        item_code: itemCode,
+        is_deleted: false
+      },
+    });
+
+    if (existingByCode) {
+      throw new ConflictError(`Item with code ${itemCode} already exists`);
+    }
+
     const item = await prisma.item.create({
       data: {
-        item_code: data.itemCode,
+        item_code: itemCode,
         item_name: data.itemName,
         category_id: data.categoryId,
         unit_id: data.unitId,
-        status: data.status,
+        status: data.status || 'ACTIVE',
         description: data.description,
         created_by: userId,
       },
