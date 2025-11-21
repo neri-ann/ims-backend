@@ -34,7 +34,7 @@ export class SupplierService {
         created_at: true,
         updated_at: true,
         is_deleted: true,
-        _count: { select: { supplier_items: true } },
+        _count: { select: { supplier_items: { where: { is_deleted: false } } } },
       },
       orderBy: { supplier_name: 'asc' },
     });
