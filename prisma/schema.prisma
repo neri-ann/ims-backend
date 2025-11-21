@@ -67,12 +67,6 @@ NEEDS_RENEWAL
 EXPIRED
 }
 
-enum disposal_status {
-PENDING
-APPROVED
-REJECTED
-COMPLETED
-}
 
 enum disposal_method {
 SOLD
@@ -498,7 +492,6 @@ disposal_method  disposal_method
 description      String?          @db.Text
 estimated_value  Decimal?         @db.Decimal(12, 2)
 actual_value     Decimal?         @db.Decimal(12, 2)
-disposal_status  disposal_status  @default(PENDING)
 
 // Audit Trail
 created_by       String?
@@ -522,7 +515,6 @@ stock            stock?           @relation(fields: [stock_id], references: [id]
 @@index([disposal_code])
 @@index([item_id])
 @@index([bus_id])
-@@index([disposal_status, is_deleted])
 @@index([disposal_date])
 }
 
