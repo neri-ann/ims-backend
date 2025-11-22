@@ -13,6 +13,8 @@ import adminSupplierRoutes from './routes/admin/supplier.routes';
 import adminSupplierItemRoutes from './routes/admin/supplier-item.routes';
 import adminCategoryRoutes from './routes/admin/category.routes';
 import adminUnitRoutes from './routes/admin/unit.routes';
+import adminChatbotRoutes from './routes/admin/chatbot.routes';
+import adminStockRoutes from './routes/admin/stock.routes';
 // TODO: Add more routes as you create them:
 // import adminStockRoutes from './routes/admin/stock.routes';
 // import adminBusRoutes from './routes/admin/bus.routes';
@@ -86,8 +88,10 @@ export const createApp = (): Application => {
   app.use('/api/v1/admin/supplier-items', adminSupplierItemRoutes);
   app.use('/api/v1/admin/categories', adminCategoryRoutes);
   app.use('/api/v1/admin/units', adminUnitRoutes);
+  app.use('/api/v1/admin/chatbot', adminChatbotRoutes);
+  // Stock routes
+  app.use('/api/v1/admin/stocks', adminStockRoutes);
   // TODO: Add more admin routes here:
-  // app.use('/api/v1/admin/stocks', adminStockRoutes);
   // app.use('/api/v1/admin/buses', adminBusRoutes);
   // app.use('/api/v1/admin/orders', adminOrderRoutes);
   // app.use('/api/v1/admin/disposals', adminDisposalRoutes);

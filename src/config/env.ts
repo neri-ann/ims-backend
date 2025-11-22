@@ -1,3 +1,4 @@
+
 import dotenv from 'dotenv';
 import path from 'path';
 
@@ -43,6 +44,9 @@ interface Config {
   // Logging
   logLevel: string;
   logFile: string;
+  
+  // AI Chatbot
+  geminiApiKey: string;
 }
 
 export const config: Config = {
@@ -76,6 +80,8 @@ export const config: Config = {
   
   logLevel: process.env.LOG_LEVEL || 'info',
   logFile: process.env.LOG_FILE || './logs/inventory.log',
+  
+  geminiApiKey: process.env.GEMINI_API_KEY || '',
 };
 
 // Validate required environment variables
