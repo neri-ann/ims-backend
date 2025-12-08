@@ -1,30 +1,11 @@
-/*
-  Warnings:
+-- CreateEnum
+CREATE TYPE "supplier_status" AS ENUM ('ACTIVE', 'INACTIVE');
 
-  - You are about to drop the `Attachment` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Batch` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `BodyBuilder` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `BrandNewDetails` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Bus` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Category` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Dealer` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Disposal` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Item` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Manufacturer` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Order` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `OrderItem` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `SecondHandDetails` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Stock` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `Supplier` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `SupplierItem` table. If the table is not empty, all the data it contains will be lost.
-  - You are about to drop the `UnitMeasure` table. If the table is not empty, all the data it contains will be lost.
-
-*/
 -- CreateEnum
 CREATE TYPE "item_status" AS ENUM ('ACTIVE', 'INACTIVE');
 
 -- CreateEnum
-CREATE TYPE "inventory_status" AS ENUM ('INACTIVE', 'AVAILABLE', 'LOW_STOCK', 'OUT_OF_STOCK', 'NOT_AVAILABLE', 'UNDER_MAINTENANCE', 'EXPIRED', 'IN_USE', 'DISPOSED');
+CREATE TYPE "stock_status" AS ENUM ('INACTIVE', 'AVAILABLE', 'LOW_STOCK', 'OUT_OF_STOCK', 'NOT_AVAILABLE', 'UNDER_MAINTENANCE', 'EXPIRED', 'IN_USE', 'DISPOSED');
 
 -- CreateEnum
 CREATE TYPE "bus_status" AS ENUM ('ACTIVE', 'DECOMMISSIONED', 'UNDER_MAINTENANCE');
@@ -45,151 +26,16 @@ CREATE TYPE "acquisition_method" AS ENUM ('PURCHASED', 'LEASED', 'DONATED');
 CREATE TYPE "registration_status" AS ENUM ('REGISTERED', 'NOT_REGISTERED', 'NEEDS_RENEWAL', 'EXPIRED');
 
 -- CreateEnum
-CREATE TYPE "disposal_status" AS ENUM ('PENDING', 'APPROVED', 'REJECTED', 'COMPLETED');
+CREATE TYPE "disposal_method" AS ENUM ('FOR_SALE', 'SCRAPPED', 'DONATED', 'TRANSFERRED', 'WRITTEN_OFF');
 
 -- CreateEnum
-CREATE TYPE "disposal_method" AS ENUM ('SOLD', 'SCRAPPED', 'DONATED', 'TRANSFERRED', 'WRITTEN_OFF');
+CREATE TYPE "order_status" AS ENUM ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'PARTIAL', 'AWAITING_COMPLETION');
 
 -- CreateEnum
-CREATE TYPE "order_status" AS ENUM ('PENDING', 'IN_PROGRESS', 'COMPLETED', 'PARTIALLY_COMPLETED', 'TO_BE_REFUNDED', 'TO_BE_REPLACED', 'CLOSED');
+CREATE TYPE "order_item_status" AS ENUM ('PENDING', 'IN_PROGRESS', 'PARTIAL', 'AWAITING_COMPLETION', 'COMPLETED');
 
--- DropForeignKey
-ALTER TABLE "Batch" DROP CONSTRAINT "Batch_stockId_fkey";
-
--- DropForeignKey
-ALTER TABLE "BrandNewDetails" DROP CONSTRAINT "BrandNewDetails_busId_fkey";
-
--- DropForeignKey
-ALTER TABLE "BrandNewDetails" DROP CONSTRAINT "BrandNewDetails_dealerId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Bus" DROP CONSTRAINT "Bus_bodyBuilderId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Bus" DROP CONSTRAINT "Bus_manufacturerId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Bus" DROP CONSTRAINT "Bus_stockId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Disposal" DROP CONSTRAINT "Disposal_batchId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Disposal" DROP CONSTRAINT "Disposal_busId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Disposal" DROP CONSTRAINT "Disposal_itemId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Disposal" DROP CONSTRAINT "Disposal_stockId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Item" DROP CONSTRAINT "Item_categoryId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Item" DROP CONSTRAINT "Item_unitId_fkey";
-
--- DropForeignKey
-ALTER TABLE "OrderItem" DROP CONSTRAINT "OrderItem_orderId_fkey";
-
--- DropForeignKey
-ALTER TABLE "SecondHandDetails" DROP CONSTRAINT "SecondHandDetails_busId_fkey";
-
--- DropForeignKey
-ALTER TABLE "Stock" DROP CONSTRAINT "Stock_itemId_fkey";
-
--- DropForeignKey
-ALTER TABLE "SupplierItem" DROP CONSTRAINT "SupplierItem_itemId_fkey";
-
--- DropForeignKey
-ALTER TABLE "SupplierItem" DROP CONSTRAINT "SupplierItem_supplierId_fkey";
-
--- DropForeignKey
-ALTER TABLE "SupplierItem" DROP CONSTRAINT "SupplierItem_supplierUnitId_fkey";
-
--- DropTable
-DROP TABLE "Attachment";
-
--- DropTable
-DROP TABLE "Batch";
-
--- DropTable
-DROP TABLE "BodyBuilder";
-
--- DropTable
-DROP TABLE "BrandNewDetails";
-
--- DropTable
-DROP TABLE "Bus";
-
--- DropTable
-DROP TABLE "Category";
-
--- DropTable
-DROP TABLE "Dealer";
-
--- DropTable
-DROP TABLE "Disposal";
-
--- DropTable
-DROP TABLE "Item";
-
--- DropTable
-DROP TABLE "Manufacturer";
-
--- DropTable
-DROP TABLE "Order";
-
--- DropTable
-DROP TABLE "OrderItem";
-
--- DropTable
-DROP TABLE "SecondHandDetails";
-
--- DropTable
-DROP TABLE "Stock";
-
--- DropTable
-DROP TABLE "Supplier";
-
--- DropTable
-DROP TABLE "SupplierItem";
-
--- DropTable
-DROP TABLE "UnitMeasure";
-
--- DropEnum
-DROP TYPE "AcquisitionMethod";
-
--- DropEnum
-DROP TYPE "BusCondition";
-
--- DropEnum
-DROP TYPE "BusSource";
-
--- DropEnum
-DROP TYPE "BusStatus";
-
--- DropEnum
-DROP TYPE "BusType";
-
--- DropEnum
-DROP TYPE "DisposalMethod";
-
--- DropEnum
-DROP TYPE "DisposalStatus";
-
--- DropEnum
-DROP TYPE "InventoryStatus";
-
--- DropEnum
-DROP TYPE "ItemStatus";
-
--- DropEnum
-DROP TYPE "OrderStatus";
-
--- DropEnum
-DROP TYPE "RegistrationStatus";
+-- CreateEnum
+CREATE TYPE "disposal_status" AS ENUM ('PENDING', 'APPROVED', 'REJECTED', 'PROCESSING', 'COMPLETED');
 
 -- CreateTable
 CREATE TABLE "category" (
@@ -197,13 +43,13 @@ CREATE TABLE "category" (
     "category_code" TEXT NOT NULL,
     "category_name" TEXT NOT NULL,
     "description" TEXT,
+    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
     "created_by" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_by" TEXT,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted_by" TEXT,
     "deleted_at" TIMESTAMP(3),
-    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "category_pkey" PRIMARY KEY ("id")
 );
@@ -215,13 +61,13 @@ CREATE TABLE "unit_measure" (
     "unit_name" TEXT NOT NULL,
     "abbreviation" TEXT,
     "description" TEXT,
+    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
     "created_by" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_by" TEXT,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted_by" TEXT,
     "deleted_at" TIMESTAMP(3),
-    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "unit_measure_pkey" PRIMARY KEY ("id")
 );
@@ -235,13 +81,15 @@ CREATE TABLE "item" (
     "unit_id" INTEGER NOT NULL,
     "status" "item_status" NOT NULL DEFAULT 'ACTIVE',
     "description" TEXT,
+    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
+    "is_recorded" BOOLEAN DEFAULT true,
+    "is_asset" BOOLEAN DEFAULT false,
     "created_by" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_by" TEXT,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted_by" TEXT,
     "deleted_at" TIMESTAMP(3),
-    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "item_pkey" PRIMARY KEY ("id")
 );
@@ -257,15 +105,16 @@ CREATE TABLE "supplier" (
     "barangay" TEXT,
     "city" TEXT,
     "province" TEXT,
-    "status" "item_status" NOT NULL DEFAULT 'ACTIVE',
+    "status" "supplier_status" NOT NULL DEFAULT 'ACTIVE',
     "description" TEXT,
+    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
+    "is_recorded" BOOLEAN NOT NULL DEFAULT true,
     "created_by" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_by" TEXT,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted_by" TEXT,
     "deleted_at" TIMESTAMP(3),
-    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "supplier_pkey" PRIMARY KEY ("id")
 );
@@ -278,13 +127,14 @@ CREATE TABLE "supplier_item" (
     "conversion_amount" DECIMAL(12,4) NOT NULL,
     "unit_price" DECIMAL(12,2) NOT NULL,
     "description" TEXT,
+    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
+    "is_recorded" BOOLEAN NOT NULL DEFAULT true,
     "created_by" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_by" TEXT,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted_by" TEXT,
-    "deleted_at" TIMESTAMP(3),
-    "is_deleted" BOOLEAN NOT NULL DEFAULT false
+    "deleted_at" TIMESTAMP(3)
 );
 
 -- CreateTable
@@ -293,14 +143,14 @@ CREATE TABLE "stock" (
     "item_id" INTEGER NOT NULL,
     "current_stock" DECIMAL(12,2) NOT NULL DEFAULT 0,
     "reorder_level" DECIMAL(12,2) NOT NULL DEFAULT 0,
-    "status" "inventory_status" NOT NULL DEFAULT 'INACTIVE',
+    "status" "stock_status" NOT NULL DEFAULT 'INACTIVE',
+    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
     "created_by" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_by" TEXT,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted_by" TEXT,
     "deleted_at" TIMESTAMP(3),
-    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "stock_pkey" PRIMARY KEY ("id")
 );
@@ -310,21 +160,18 @@ CREATE TABLE "batch" (
     "id" SERIAL NOT NULL,
     "stock_id" INTEGER NOT NULL,
     "batch_number" TEXT,
-    "usable_quantity" DECIMAL(12,2) NOT NULL DEFAULT 0,
-    "defective_quantity" DECIMAL(12,2) NOT NULL DEFAULT 0,
-    "missing_quantity" DECIMAL(12,2) NOT NULL DEFAULT 0,
+    "quantity" DECIMAL(12,2) NOT NULL DEFAULT 0,
     "expiration_date" TIMESTAMP(3),
     "received_date" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "description" TEXT,
+    "remarks" TEXT,
+    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
     "created_by" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_by" TEXT,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted_by" TEXT,
     "deleted_at" TIMESTAMP(3),
-    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
-    "external_order_ref" TEXT,
-    "purchase_request_ref" TEXT,
+    "order_code" TEXT,
 
     CONSTRAINT "batch_pkey" PRIMARY KEY ("id")
 );
@@ -335,13 +182,13 @@ CREATE TABLE "body_builder" (
     "body_builder_code" TEXT NOT NULL,
     "body_builder_name" TEXT NOT NULL,
     "description" TEXT,
+    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
     "created_by" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_by" TEXT,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted_by" TEXT,
     "deleted_at" TIMESTAMP(3),
-    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "body_builder_pkey" PRIMARY KEY ("id")
 );
@@ -352,13 +199,13 @@ CREATE TABLE "manufacturer" (
     "manufacturer_code" TEXT NOT NULL,
     "manufacturer_name" TEXT NOT NULL,
     "description" TEXT,
+    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
     "created_by" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_by" TEXT,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted_by" TEXT,
     "deleted_at" TIMESTAMP(3),
-    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "manufacturer_pkey" PRIMARY KEY ("id")
 );
@@ -366,7 +213,7 @@ CREATE TABLE "manufacturer" (
 -- CreateTable
 CREATE TABLE "bus" (
     "id" SERIAL NOT NULL,
-    "stock_id" INTEGER,
+    "bus_code" TEXT NOT NULL,
     "plate_number" TEXT NOT NULL,
     "body_number" TEXT NOT NULL,
     "body_builder_id" INTEGER NOT NULL,
@@ -379,17 +226,19 @@ CREATE TABLE "bus" (
     "model" TEXT,
     "year_model" INTEGER,
     "condition" "bus_condition" NOT NULL,
+    "acquisition_cost" DECIMAL(12,2) NOT NULL DEFAULT 0,
     "acquisition_date" TIMESTAMP(3),
     "acquisition_method" "acquisition_method" NOT NULL,
     "warranty_expiration_date" TIMESTAMP(3),
     "registration_status" "registration_status",
+    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
+    "is_asset" BOOLEAN NOT NULL DEFAULT true,
     "created_by" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_by" TEXT,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted_by" TEXT,
     "deleted_at" TIMESTAMP(3),
-    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "bus_pkey" PRIMARY KEY ("id")
 );
@@ -404,13 +253,13 @@ CREATE TABLE "second_hand_details" (
     "odometer_reading" DECIMAL(12,2),
     "last_registration_date" TIMESTAMP(3),
     "description" TEXT,
+    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
     "created_by" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_by" TEXT,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted_by" TEXT,
     "deleted_at" TIMESTAMP(3),
-    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "second_hand_details_pkey" PRIMARY KEY ("id")
 );
@@ -421,13 +270,13 @@ CREATE TABLE "brand_new_details" (
     "bus_id" INTEGER NOT NULL,
     "dealer_name" TEXT,
     "dealer_contact" TEXT,
+    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
     "created_by" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_by" TEXT,
     "updated_at" TIMESTAMP(3) NOT NULL,
     "deleted_by" TEXT,
     "deleted_at" TIMESTAMP(3),
-    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "brand_new_details_pkey" PRIMARY KEY ("id")
 );
@@ -436,7 +285,6 @@ CREATE TABLE "brand_new_details" (
 CREATE TABLE "disposal" (
     "id" SERIAL NOT NULL,
     "disposal_code" TEXT NOT NULL,
-    "item_id" INTEGER,
     "bus_id" INTEGER,
     "batch_id" INTEGER,
     "stock_id" INTEGER,
@@ -444,9 +292,8 @@ CREATE TABLE "disposal" (
     "disposal_date" TIMESTAMP(3) NOT NULL,
     "disposal_method" "disposal_method" NOT NULL,
     "description" TEXT,
-    "estimated_value" DECIMAL(12,2),
-    "actual_value" DECIMAL(12,2),
-    "disposal_status" "disposal_status" NOT NULL DEFAULT 'PENDING',
+    "status" "disposal_status" NOT NULL DEFAULT 'PENDING',
+    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
     "created_by" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_by" TEXT,
@@ -457,7 +304,6 @@ CREATE TABLE "disposal" (
     "rejected_at" TIMESTAMP(3),
     "deleted_by" TEXT,
     "deleted_at" TIMESTAMP(3),
-    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "disposal_pkey" PRIMARY KEY ("id")
 );
@@ -466,9 +312,9 @@ CREATE TABLE "disposal" (
 CREATE TABLE "order" (
     "id" SERIAL NOT NULL,
     "order_code" TEXT NOT NULL,
-    "purchase_request_ref" TEXT NOT NULL,
+    "purchase_request_code" TEXT NOT NULL,
     "status" "order_status" NOT NULL DEFAULT 'PENDING',
-    "external_batch_refs" TEXT,
+    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
     "created_by" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_by" TEXT,
@@ -479,7 +325,6 @@ CREATE TABLE "order" (
     "closed_at" TIMESTAMP(3),
     "deleted_by" TEXT,
     "deleted_at" TIMESTAMP(3),
-    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
 
     CONSTRAINT "order_pkey" PRIMARY KEY ("id")
 );
@@ -487,23 +332,28 @@ CREATE TABLE "order" (
 -- CreateTable
 CREATE TABLE "order_item" (
     "id" SERIAL NOT NULL,
+    "order_item_code" TEXT NOT NULL,
     "order_id" INTEGER NOT NULL,
-    "external_item_ref" TEXT NOT NULL,
-    "item_name" TEXT NOT NULL,
     "ordered_quantity" DECIMAL(12,2) NOT NULL,
     "ordered_unit_price" DECIMAL(12,2) NOT NULL,
-    "ordered_total_price" DECIMAL(12,2) NOT NULL,
-    "received_quantity" DECIMAL(12,2) DEFAULT 0,
+    "order_item_status" "order_item_status" NOT NULL DEFAULT 'PENDING',
     "actual_unit_price" DECIMAL(12,2),
-    "actual_total_price" DECIMAL(12,2),
+    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
+    "is_replacement" BOOLEAN NOT NULL DEFAULT false,
+    "old_order_id" INTEGER,
+    "usable_quantity" DECIMAL(12,2) DEFAULT 0,
     "missing_quantity" DECIMAL(12,2) DEFAULT 0,
     "damaged_quantity" DECIMAL(12,2) DEFAULT 0,
-    "batch_number" TEXT,
-    "expiration_date" TIMESTAMP(3),
-    "remarks" TEXT,
+    "receipt_quantity" DECIMAL(12,2) DEFAULT 0,
+    "refund_quantity" DECIMAL(12,2) NOT NULL,
+    "replace_quantity" DECIMAL(12,2) NOT NULL,
+    "no_action_quantity" DECIMAL(12,2) NOT NULL,
+    "created_by" TEXT,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_by" TEXT,
     "updated_at" TIMESTAMP(3) NOT NULL,
-    "is_deleted" BOOLEAN NOT NULL DEFAULT false,
+    "deleted_by" TEXT,
+    "deleted_at" TIMESTAMP(3),
 
     CONSTRAINT "order_item_pkey" PRIMARY KEY ("id")
 );
@@ -599,7 +449,7 @@ CREATE UNIQUE INDEX "stock_item_id_key" ON "stock"("item_id");
 CREATE INDEX "batch_stock_id_idx" ON "batch"("stock_id");
 
 -- CreateIndex
-CREATE INDEX "batch_external_order_ref_idx" ON "batch"("external_order_ref");
+CREATE INDEX "batch_order_code_idx" ON "batch"("order_code");
 
 -- CreateIndex
 CREATE INDEX "batch_batch_number_idx" ON "batch"("batch_number");
@@ -609,9 +459,6 @@ CREATE INDEX "batch_received_date_idx" ON "batch"("received_date");
 
 -- CreateIndex
 CREATE INDEX "batch_expiration_date_idx" ON "batch"("expiration_date");
-
--- CreateIndex
-CREATE INDEX "batch_purchase_request_ref_idx" ON "batch"("purchase_request_ref");
 
 -- CreateIndex
 CREATE INDEX "batch_is_deleted_idx" ON "batch"("is_deleted");
@@ -633,6 +480,9 @@ CREATE INDEX "manufacturer_manufacturer_code_idx" ON "manufacturer"("manufacture
 
 -- CreateIndex
 CREATE INDEX "manufacturer_is_deleted_idx" ON "manufacturer"("is_deleted");
+
+-- CreateIndex
+CREATE UNIQUE INDEX "bus_bus_code_key" ON "bus"("bus_code");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "bus_plate_number_key" ON "bus"("plate_number");
@@ -683,13 +533,13 @@ CREATE UNIQUE INDEX "disposal_disposal_code_key" ON "disposal"("disposal_code");
 CREATE INDEX "disposal_disposal_code_idx" ON "disposal"("disposal_code");
 
 -- CreateIndex
-CREATE INDEX "disposal_item_id_idx" ON "disposal"("item_id");
-
--- CreateIndex
 CREATE INDEX "disposal_bus_id_idx" ON "disposal"("bus_id");
 
 -- CreateIndex
-CREATE INDEX "disposal_disposal_status_is_deleted_idx" ON "disposal"("disposal_status", "is_deleted");
+CREATE INDEX "disposal_batch_id_idx" ON "disposal"("batch_id");
+
+-- CreateIndex
+CREATE INDEX "disposal_stock_id_idx" ON "disposal"("stock_id");
 
 -- CreateIndex
 CREATE INDEX "disposal_disposal_date_idx" ON "disposal"("disposal_date");
@@ -701,7 +551,7 @@ CREATE UNIQUE INDEX "order_order_code_key" ON "order"("order_code");
 CREATE INDEX "order_order_code_idx" ON "order"("order_code");
 
 -- CreateIndex
-CREATE INDEX "order_purchase_request_ref_idx" ON "order"("purchase_request_ref");
+CREATE INDEX "order_purchase_request_code_idx" ON "order"("purchase_request_code");
 
 -- CreateIndex
 CREATE INDEX "order_status_idx" ON "order"("status");
@@ -710,10 +560,13 @@ CREATE INDEX "order_status_idx" ON "order"("status");
 CREATE INDEX "order_is_deleted_idx" ON "order"("is_deleted");
 
 -- CreateIndex
+CREATE UNIQUE INDEX "order_item_order_item_code_key" ON "order_item"("order_item_code");
+
+-- CreateIndex
 CREATE INDEX "order_item_order_id_idx" ON "order_item"("order_id");
 
 -- CreateIndex
-CREATE INDEX "order_item_external_item_ref_idx" ON "order_item"("external_item_ref");
+CREATE INDEX "order_item_order_item_status_idx" ON "order_item"("order_item_status");
 
 -- CreateIndex
 CREATE INDEX "order_item_is_deleted_idx" ON "order_item"("is_deleted");
@@ -752,9 +605,6 @@ ALTER TABLE "stock" ADD CONSTRAINT "stock_item_id_fkey" FOREIGN KEY ("item_id") 
 ALTER TABLE "batch" ADD CONSTRAINT "batch_stock_id_fkey" FOREIGN KEY ("stock_id") REFERENCES "stock"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "bus" ADD CONSTRAINT "bus_stock_id_fkey" FOREIGN KEY ("stock_id") REFERENCES "stock"("id") ON DELETE SET NULL ON UPDATE CASCADE;
-
--- AddForeignKey
 ALTER TABLE "bus" ADD CONSTRAINT "bus_body_builder_id_fkey" FOREIGN KEY ("body_builder_id") REFERENCES "body_builder"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
@@ -765,9 +615,6 @@ ALTER TABLE "second_hand_details" ADD CONSTRAINT "second_hand_details_bus_id_fke
 
 -- AddForeignKey
 ALTER TABLE "brand_new_details" ADD CONSTRAINT "brand_new_details_bus_id_fkey" FOREIGN KEY ("bus_id") REFERENCES "bus"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "disposal" ADD CONSTRAINT "disposal_item_id_fkey" FOREIGN KEY ("item_id") REFERENCES "item"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
 ALTER TABLE "disposal" ADD CONSTRAINT "disposal_bus_id_fkey" FOREIGN KEY ("bus_id") REFERENCES "bus"("id") ON DELETE RESTRICT ON UPDATE CASCADE;

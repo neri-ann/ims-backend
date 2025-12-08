@@ -25,30 +25,29 @@ export async function seedBuses(prisma: PrismaClient) {
 
   const buses = [
     {
-      plate_number: 'PLATE-0001', body_number: 'BODY-0001', body_builder_id: bb1?.id || 1, manufacturer_id: m1?.id || 1,
+      bus_code: 'BUS-0001', plate_number: 'PLATE-0001', body_number: 'BODY-0001', body_builder_id: bb1?.id || 1, manufacturer_id: m1?.id || 1,
       bus_type: 'AIRCONDITIONED' as const, condition: 'BRAND_NEW' as const, status: 'ACTIVE' as const,
       chassis_number: 'CHS-0001', engine_number: 'ENG-0001', seat_capacity: 45, model: 'X1', year_model: 2025,
       acquisition_date: new Date(), acquisition_method: 'PURCHASED' as const, registration_status: 'REGISTERED' as const,
       brand_new_details: { dealer_name: 'Dealer One', dealer_contact: '+63-2-111-1111' },
-      stock_id: stockForTire?.id,
+      
     },
     {
-      plate_number: 'PLATE-0002', body_number: 'BODY-0002', body_builder_id: bb2?.id || 1, manufacturer_id: m2?.id || 2,
+      bus_code: 'BUS-0002', plate_number: 'PLATE-0002', body_number: 'BODY-0002', body_builder_id: bb2?.id || 1, manufacturer_id: m2?.id || 2,
       bus_type: 'ORDINARY' as const, condition: 'SECOND_HAND' as const, status: 'ACTIVE' as const,
       chassis_number: 'CHS-0002', engine_number: 'ENG-0002', seat_capacity: 40, model: 'S2', year_model: 2018,
       acquisition_date: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000), acquisition_method: 'PURCHASED' as const, registration_status: 'NEEDS_RENEWAL' as const,
       second_hand_details: { previous_owner: 'Old Operator Co.', previous_owner_contact: '+63-917-222-2222', source: 'COMPANY_FLEET' as const, odometer_reading: '120000.00' },
     },
     {
-      plate_number: 'PLATE-0003', body_number: 'BODY-0003', body_builder_id: bb1?.id || 1, manufacturer_id: m2?.id || 2,
+      bus_code: 'BUS-0003', plate_number: 'PLATE-0003', body_number: 'BODY-0003', body_builder_id: bb1?.id || 1, manufacturer_id: m2?.id || 2,
       bus_type: 'AIRCONDITIONED' as const, condition: 'SECOND_HAND' as const, status: 'UNDER_MAINTENANCE' as const,
       chassis_number: 'CHS-0003', engine_number: 'ENG-0003', seat_capacity: 48, model: 'X2', year_model: 2020,
       acquisition_date: new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000), acquisition_method: 'PURCHASED' as const, registration_status: 'REGISTERED' as const,
       second_hand_details: { previous_owner: 'Jane Doe', previous_owner_contact: '+63-918-333-3333', source: 'AUCTION' as const, odometer_reading: '80000.00' },
-      stock_id: null,
     },
     {
-      plate_number: 'PLATE-0004', body_number: 'BODY-0004', body_builder_id: bb2?.id || 2, manufacturer_id: m1?.id || 1,
+      bus_code: 'BUS-0004', plate_number: 'PLATE-0004', body_number: 'BODY-0004', body_builder_id: bb2?.id || 2, manufacturer_id: m1?.id || 1,
       bus_type: 'ORDINARY' as const, condition: 'BRAND_NEW' as const, status: 'ACTIVE' as const,
       chassis_number: 'CHS-0004', engine_number: 'ENG-0004', seat_capacity: 42, model: 'Z3', year_model: 2025,
       acquisition_date: new Date(), acquisition_method: 'PURCHASED' as const, registration_status: 'REGISTERED' as const,
@@ -63,6 +62,7 @@ export async function seedBuses(prisma: PrismaClient) {
     if (exists) continue;
 
     const nested: any = {
+      bus_code: b.bus_code,
       plate_number: b.plate_number,
       body_number: b.body_number,
       body_builder_id: b.body_builder_id,
@@ -81,7 +81,6 @@ export async function seedBuses(prisma: PrismaClient) {
       created_by: 'seeder',
     };
 
-    if (b.stock_id !== undefined) nested.stock_id = b.stock_id;
     if (b.brand_new_details) nested.brand_new_details = { create: b.brand_new_details };
     if (b.second_hand_details) nested.second_hand_details = { create: b.second_hand_details };
 
