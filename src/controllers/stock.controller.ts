@@ -16,6 +16,7 @@ export class StockController {
         toDate: req.query.toDate as string,
         sortBy: req.query.sortBy as any,
         sortOrder: req.query.sortOrder as any,
+        order: req.query.order as any,
       };
 
       const result = await stockService.listStocks(filters);

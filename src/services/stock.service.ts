@@ -41,6 +41,7 @@ export interface StockListFilters {
   maxQty?: number;
   sortBy?: string;
   sortOrder?: 'asc' | 'desc';
+  order?: 'asc' | 'desc';
 }
 
 export class StockService {
@@ -49,7 +50,7 @@ export class StockService {
     const limit = filters.limit && filters.limit > 0 ? filters.limit : 20;
     const skip = (page - 1) * limit;
 
-    const where: Prisma.stockWhereInput = { is_deleted: false, status: { not: 'INACTIVE' } } as any;
+    const where: Prisma.stockWhereInput = { is_deleted: false } as any;
 
     if (filters.search) {
       const q = filters.search;
@@ -65,12 +66,16 @@ export class StockService {
       ];
     }
 
-    if (filters.status) where.status = filters.status as any;
     if (filters.category) where.item = { category: { category_name: { contains: filters.category, mode: 'insensitive' } } } as any;
+    
     if (filters.fromDate || filters.toDate) {
       const range: any = {};
       if (filters.fromDate) range.gte = new Date(filters.fromDate);
-      if (filters.toDate) range.lte = new Date(filters.toDate);
+      if (filters.toDate) {
+        const toDate = new Date(filters.toDate);
+        toDate.setHours(23, 59, 59, 999);
+        range.lte = toDate;
+      }
       (where as any).created_at = range;
     }
 
@@ -81,29 +86,28 @@ export class StockService {
       (where as any).current_stock = qRange;
     }
 
+    // Determine sort order - support both 'sortOrder' and 'order' parameters
+    const sortOrder = (filters.sortOrder || filters.order || 'asc') as 'asc' | 'desc';
+
     const orderBy: any = {};
     if (filters.sortBy) {
       const map: Record<string, string> = { itemName: 'item_id', currentStock: 'current_stock', reorderLevel: 'reorder_level', createdAt: 'created_at' };
-      orderBy[map[filters.sortBy] || 'created_at'] = filters.sortOrder || 'desc';
+      orderBy[map[filters.sortBy] || 'created_at'] = sortOrder;
     } else {
       orderBy.created_at = 'desc';
     }
 
-    const [rows, total] = await Promise.all([
-      prisma.stock.findMany({
-        where,
-        include: { item: { include: { category: true, unit: true, supplier_items: { include: { supplier: true } } } }, batches: { where: { is_deleted: false } } },
-        orderBy,
-        skip,
-        take: limit,
-      }),
-      prisma.stock.count({ where }),
-    ]);
+    // Fetch all matching records (before status filtering and pagination)
+    const allRows = await prisma.stock.findMany({
+      where,
+      include: { item: { include: { category: true, unit: true, supplier_items: { include: { supplier: true } } } }, batches: { where: { is_deleted: false } } },
+    });
 
-    const data = rows.map((r: any) => {
+    // Map and compute status for each record
+    const mappedRows = allRows.map((r: any) => {
       const batches = r.batches || [];
       const totalQty = batches.reduce((acc: number, b: any) => acc + Number(b.quantity || 0), 0);
-      const status = computeStatusFromRules(totalQty, Number(r.reorder_level || 0), r.item?.category?.category_name, r.status, batches);
+      const computedStatus = computeStatusFromRules(totalQty, Number(r.reorder_level || 0), r.item?.category?.category_name, r.status, batches);
 
       return {
         id: r.id,
@@ -114,10 +118,53 @@ export class StockService {
         category: r.item?.category?.category_name,
         currentStock: totalQty,
         reorderLevel: Number(r.reorder_level || 0),
-        status,
+        status: computedStatus,
         createdAt: formatLongDate(r.created_at),
         updatedAt: formatLongDate(r.updated_at),
+        _raw: r, // Keep raw data for sorting
       };
+    });
+
+    // Apply status filter on computed status
+    let filteredRows = mappedRows;
+    if (filters.status) {
+      const statusArray = filters.status.split(',').map((s: string) => s.trim().toUpperCase());
+      filteredRows = mappedRows.filter((r: any) => statusArray.includes(r.status));
+    }
+
+    // Apply sorting on the filtered data
+    filteredRows.sort((a: any, b: any) => {
+      let aVal: any = a.createdAt;
+      let bVal: any = b.createdAt;
+
+      if (filters.sortBy === 'itemName') {
+        aVal = a.itemName || '';
+        bVal = b.itemName || '';
+      } else if (filters.sortBy === 'currentStock') {
+        aVal = a.currentStock;
+        bVal = b.currentStock;
+      } else if (filters.sortBy === 'reorderLevel') {
+        aVal = a.reorderLevel;
+        bVal = b.reorderLevel;
+      } else if (filters.sortBy === 'createdAt') {
+        aVal = new Date(a._raw.created_at).getTime();
+        bVal = new Date(b._raw.created_at).getTime();
+      }
+
+      if (typeof aVal === 'string') {
+        return sortOrder === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
+      }
+      return sortOrder === 'asc' ? aVal - bVal : bVal - aVal;
+    });
+
+    // Apply pagination on filtered and sorted data
+    const paginatedData = filteredRows.slice(skip, skip + limit);
+    const total = filteredRows.length;
+
+    // Remove _raw property from final output
+    const data = paginatedData.map((r: any) => {
+      const { _raw, ...rest } = r;
+      return rest;
     });
 
     return { success: true, data, pagination: { page, limit, total, totalPages: Math.ceil(total / limit) } };
