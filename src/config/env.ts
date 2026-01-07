@@ -86,7 +86,7 @@ export const config: Config = {
 
 // Validate required environment variables
 const requiredEnvVars = [
-  'INVENTORY_MAIN_DATABASE_URL',
+  'DATABASE_URL',
 ];
 
 for (const envVar of requiredEnvVars) {
