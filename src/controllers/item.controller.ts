@@ -8,6 +8,7 @@ import { AuthRequest } from '../middleware/auth';
 import { logger } from '../config/logger';
 import { itemService } from '../services/item.service';
 import type { ItemCreateData, ItemUpdateData, ItemListFilters } from '../services/item.service';
+// Note: intentionally using runtime-mapped shapes for frontend compatibility
 
 export class ItemController {
   /**
@@ -32,7 +33,24 @@ export class ItemController {
       };
 
       const result = await itemService.listItems(filters);
-      res.json(result);
+
+      // Map to frontend expected shape: { data: mapped, meta: { total, page, limit, pages } }
+      const items = result.data as any[];
+      const mapped = items.map((it) => ({
+        ...(it as Record<string, unknown>),
+  // Provide frontend-friendly id field (frontend expects item_id string like ITEM-00001)
+  item_id: ((it as any).item_code),
+        supplierCount: (it as any)._count ? (it as any)._count.supplier_items ?? 0 : 0,
+      }));
+
+      const meta = {
+        total: result.pagination?.total ?? 0,
+        page: result.pagination?.page ?? (filters.page || 1),
+        limit: result.pagination?.limit ?? (filters.limit || 20),
+        pages: result.pagination ? Math.ceil((result.pagination.total || 0) / (result.pagination.limit || 1)) : 1,
+      };
+
+      res.json({ data: mapped, meta });
     } catch (error) {
       logger.error('[ItemController] Error listing items:', error);
       next(error);
@@ -55,7 +73,15 @@ export class ItemController {
       logger.info(`[ItemController] Get item by ID: ${id}`);
 
       const item = await itemService.getItemById(id);
-      res.json({ success: true, data: item });
+      // compute supplierCount if present in _count
+      const supplierCount = (item as any)._count?.supplier_items ?? 0;
+      const out = {
+        ...(item as Record<string, unknown>),
+  // make sure frontend receives item_id property (string code)
+  item_id: ((item as any).item_code),
+        supplierCount,
+      };
+      res.json(out);
     } catch (error) {
       logger.error(`[ItemController] Error getting item:`, error);
       next(error);
@@ -74,15 +100,33 @@ export class ItemController {
       });
 
       const userId = req.user?.sub || 'system';
-      const data: ItemCreateData = req.body;
+      
+      // Map snake_case from frontend to camelCase for service
+      const data: ItemCreateData = {
+        itemCode: req.body.item_code,
+        itemName: req.body.item_name,
+        categoryId: req.body.category_id,
+        unitId: req.body.unit_id,
+        status: req.body.status,
+        description: req.body.description,
+      };
       
       const item = await itemService.createItem(data, userId);
 
-      res.status(201).json({
-        success: true,
-        message: 'Item created successfully',
-        data: item,
-      });
+      // Map response back to frontend expected format
+      const response = {
+        id: item.id,
+        itemCode: item.item_code,
+        itemName: item.item_name,
+        itemCategory: item.category?.category_name,
+        itemUnitMeasure: item.unit?.abbreviation || item.unit?.unit_name,
+        itemStatus: item.status,
+        itemDescription: item.description,
+        date_created: item.created_at,
+        date_updated: item.updated_at,
+      };
+
+      res.status(201).json(response);
     } catch (error) {
       logger.error('[ItemController] Error creating item:', error);
       next(error);
@@ -108,7 +152,16 @@ export class ItemController {
       });
 
       const userId = req.user?.sub || 'system';
-      const data: ItemUpdateData = req.body;
+      
+      // Map snake_case from frontend to camelCase for service
+      const data: ItemUpdateData = {
+        itemCode: req.body.item_code,
+        itemName: req.body.item_name,
+        categoryId: req.body.category_id,
+        unitId: req.body.unit_id,
+        status: req.body.status,
+        description: req.body.description,
+      };
       
       const item = await itemService.updateItem(id, data, userId);
 

@@ -10,7 +10,7 @@ export const validateServiceApiKey = (
   req: Request,
   res: Response,
   next: NextFunction
-) => {
+): Response | void => {
   const apiKey = req.headers['x-api-key'] as string;
 
   if (!apiKey) {

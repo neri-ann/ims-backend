@@ -1,3 +1,4 @@
+
 import dotenv from 'dotenv';
 import path from 'path';
 
@@ -43,6 +44,9 @@ interface Config {
   // Logging
   logLevel: string;
   logFile: string;
+  
+  // AI Chatbot
+  geminiApiKey: string;
 }
 
 export const config: Config = {
@@ -50,7 +54,7 @@ export const config: Config = {
   nodeEnv: process.env.NODE_ENV || 'development',
   baseUrl: process.env.BASE_URL || 'http://localhost:5000',
   
-  databaseUrl: process.env.INVENTORY_DATABASE_URL!,
+  databaseUrl: process.env.INVENTORY_MAIN_DATABASE_URL || process.env.INVENTORY_DATABASE_URL!,
   redisUrl: process.env.REDIS_URL || 'redis://localhost:6379',
   enableCache: process.env.ENABLE_CACHE === 'true',
   
@@ -76,11 +80,13 @@ export const config: Config = {
   
   logLevel: process.env.LOG_LEVEL || 'info',
   logFile: process.env.LOG_FILE || './logs/inventory.log',
+  
+  geminiApiKey: process.env.GEMINI_API_KEY || '',
 };
 
 // Validate required environment variables
 const requiredEnvVars = [
-  'INVENTORY_DATABASE_URL',
+  'DATABASE_URL',
 ];
 
 for (const envVar of requiredEnvVars) {
