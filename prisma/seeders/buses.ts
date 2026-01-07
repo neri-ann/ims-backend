@@ -20,9 +20,6 @@ export async function seedBuses(prisma: PrismaClient) {
     prisma.manufacturer.findUnique({ where: { manufacturer_code: 'MFG-00002' } }),
   ]);
 
-  // find a stock to attach to some buses (if present)
-  const stockForTire = await prisma.stock.findFirst({ where: {}, include: { item: true } });
-
   const buses = [
     {
       bus_code: 'BUS-0001', plate_number: 'PLATE-0001', body_number: 'BODY-0001', body_builder_id: bb1?.id || 1, manufacturer_id: m1?.id || 1,

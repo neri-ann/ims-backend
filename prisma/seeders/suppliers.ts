@@ -3,16 +3,16 @@
  * Uses exact Prisma models `supplier` and `supplier_item`.
  * supplier_item createMany is used with skipDuplicates to be idempotent.
  */
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient, supplier_status } from '@prisma/client';
 
 export async function seedSuppliers(prisma: PrismaClient) {
   console.log('  - Seeding suppliers and supplier_items...');
 
   const suppliers = [
-    { supplier_code: 'SUP-00001', supplier_name: 'ABC Auto Parts Corporation', contact_number: '+63-2-1234-5678', email: 'sales@abcauto.com', city: 'Pasig City', province: 'Metro Manila', status: 'ACTIVE', description: 'Leading supplier', created_by: 'seeder' },
-    { supplier_code: 'SUP-00002', supplier_name: 'XYZ Oils & Lubricants Inc.', contact_number: '+63-2-8765-4321', email: 'orders@xyzoils.ph', city: 'Makati City', province: 'Metro Manila', status: 'ACTIVE', description: 'Oils distributor', created_by: 'seeder' },
-    { supplier_code: 'SUP-00003', supplier_name: 'MegaTool Supply Center', contact_number: '+63-2-5555-1234', email: 'info@megatool.com', city: 'Valenzuela City', province: 'Metro Manila', status: 'ACTIVE', description: 'Tools and equipment', created_by: 'seeder' },
-    { supplier_code: 'SUP-00004', supplier_name: 'Premier Tire & Battery Co.', contact_number: '+63-2-9876-5432', email: 'sales@premiertire.ph', city: 'Valenzuela City', province: 'Metro Manila', status: 'ACTIVE', description: 'Tires & batteries', created_by: 'seeder' },
+    { supplier_code: 'SUP-00001', supplier_name: 'ABC Auto Parts Corporation', contact_number: '+63-2-1234-5678', email: 'sales@abcauto.com', city: 'Pasig City', province: 'Metro Manila', status: supplier_status.ACTIVE, description: 'Leading supplier', created_by: 'seeder' },
+    { supplier_code: 'SUP-00002', supplier_name: 'XYZ Oils & Lubricants Inc.', contact_number: '+63-2-8765-4321', email: 'orders@xyzoils.ph', city: 'Makati City', province: 'Metro Manila', status: supplier_status.ACTIVE, description: 'Oils distributor', created_by: 'seeder' },
+    { supplier_code: 'SUP-00003', supplier_name: 'MegaTool Supply Center', contact_number: '+63-2-5555-1234', email: 'info@megatool.com', city: 'Valenzuela City', province: 'Metro Manila', status: supplier_status.ACTIVE, description: 'Tools and equipment', created_by: 'seeder' },
+    { supplier_code: 'SUP-00004', supplier_name: 'Premier Tire & Battery Co.', contact_number: '+63-2-9876-5432', email: 'sales@premiertire.ph', city: 'Valenzuela City', province: 'Metro Manila', status: supplier_status.ACTIVE, description: 'Tires & batteries', created_by: 'seeder' },
   ];
 
   for (const s of suppliers) {
