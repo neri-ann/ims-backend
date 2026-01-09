@@ -11,6 +11,17 @@ coverage/
 dist/
 build/
 
+# TypeScript compiled outputs
+*.js
+*.d.ts
+*.js.map
+*.d.ts.map
+
+# Exceptions - keep these JS files
+!*.config.js
+!*.config.mjs
+!eslint.config.mjs
+
 # Environment
 .env
 .env.local
