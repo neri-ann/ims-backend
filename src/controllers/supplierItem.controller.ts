@@ -63,6 +63,69 @@ export class SupplierItemController {
       next(error);
     }
   }
+
+  /**
+   * Get supplier_item by supplier_code and item_code
+   * GET /api/v1/admin/supplier-items/:supplierCode/:itemCode
+   */
+  async getBySupplierAndItemCodes(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { supplierCode, itemCode } = req.params;
+      
+      if (!supplierCode || !itemCode) {
+        res.status(400).json({ error: 'Supplier code and item code are required' });
+        return;
+      }
+
+      const result = await supplierItemService.getBySupplierAndItemCodes(supplierCode, itemCode);
+      res.json(result);
+    } catch (error) {
+      logger.error('[SupplierItemController] Error fetching supplier-item by codes:', error);
+      next(error);
+    }
+  }
+
+  /**
+   * Create supplier-item relation (from purchase request)
+   * POST /api/v1/admin/supplier-items/relation
+   */
+  async createRelation(req: Request, res: Response, next: NextFunction) {
+    try {
+      const { supplierCode, itemCode, unitPrice, supplierUnitId, conversionAmount, description, createdBy } = req.body;
+
+      if (!supplierCode || !itemCode || unitPrice === undefined) {
+        res.status(400).json({ error: 'Supplier code, item code, and unit price are required' });
+        return;
+      }
+
+      const result = await supplierItemService.createSupplierItemRelation({
+        supplierCode,
+        itemCode,
+        unitPrice,
+        supplierUnitId,
+        conversionAmount,
+        description,
+        createdBy: createdBy || 'purchase-request',
+      });
+
+      res.status(201).json({
+        success: true,
+        data: {
+          supplier_id: result.supplier_id,
+          item_id: result.item_id,
+          supplier_unit_id: result.supplier_unit_id,
+          conversion_amount: result.conversion_amount,
+          unit_price: result.unit_price,
+          description: result.description,
+          is_recorded: result.is_recorded,
+        },
+      });
+      return;
+    } catch (error) {
+      logger.error('[SupplierItemController] Error creating supplier-item relation:', error);
+      next(error);
+    }
+  }
 }
 
 export const supplierItemController = new SupplierItemController();

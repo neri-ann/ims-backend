@@ -5,12 +5,12 @@ import { authorize } from '../../middleware/authorize';
 
 const router = Router();
 
-router.use(authenticate);
-router.use(authorize('admin', 'inventory_manager'));
+const authMiddleware = [authenticate, authorize('admin', 'inventory_manager')];
 
-router.get('/', supplierController.list.bind(supplierController));
-router.post('/', supplierController.create.bind(supplierController));
-router.get('/:id', supplierController.getById.bind(supplierController));
-router.put('/:id', supplierController.update.bind(supplierController));
+router.get('/', ...authMiddleware, supplierController.list.bind(supplierController));
+router.post('/', ...authMiddleware, supplierController.create.bind(supplierController));
+router.post('/unrecorded', supplierController.createUnrecordedSupplier.bind(supplierController));
+router.get('/:id', ...authMiddleware, supplierController.getById.bind(supplierController));
+router.put('/:id', ...authMiddleware, supplierController.update.bind(supplierController));
 
 export default router;

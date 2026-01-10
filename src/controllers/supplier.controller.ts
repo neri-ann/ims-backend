@@ -81,12 +81,22 @@ export class SupplierController {
 
   async getById(req: Request, res: Response, next: NextFunction) {
     try {
-      const id = Number(req.params.id);
-      if (Number.isNaN(id)) {
-        res.status(400).json({ error: 'Invalid id' });
+      const idParam = req.params.id;
+      const numericId = Number(idParam);
+
+      let s;
+      if (Number.isNaN(numericId)) {
+        // Treat as supplier_code
+        s = await supplierService.getByCode(idParam);
+      } else {
+        // Treat as numeric ID
+        s = await supplierService.getById(numericId);
+      }
+
+      if (!s) {
+        res.status(404).json({ success: false, error: 'Supplier not found' });
         return;
       }
-      const s = await supplierService.getById(id);
 
       const out = {
         id: s.id,
@@ -109,6 +119,54 @@ export class SupplierController {
   return;
     } catch (error) {
       logger.error('[SupplierController] Error fetching supplier:', error);
+      next(error);
+    }
+  }
+
+  /**
+   * POST /api/v1/admin/suppliers/unrecorded
+   * Create unrecorded supplier (from purchase request)
+   */
+  async createUnrecordedSupplier(req: Request, res: Response, next: NextFunction) {
+    try {
+      logger.info('[SupplierController] Create unrecorded supplier request:', req.body);
+
+      const { supplierName, contactNumber, email, street, barangay, city, province, createdBy } = req.body;
+
+      if (!supplierName) {
+        res.status(400).json({ error: 'Supplier name is required' });
+        return;
+      }
+
+      const supplier = await supplierService.createUnrecordedSupplier({
+        supplierName,
+        contactNumber,
+        email,
+        street,
+        barangay,
+        city,
+        province,
+        createdBy: createdBy || 'purchase-request',
+      });
+
+      res.status(201).json({
+        success: true,
+        data: {
+          supplier_code: supplier.supplier_code,
+          supplier_name: supplier.supplier_name,
+          contact_number: supplier.contact_number,
+          email: supplier.email,
+          street: supplier.street,
+          barangay: supplier.barangay,
+          city: supplier.city,
+          province: supplier.province,
+          status: supplier.status,
+          is_recorded: supplier.is_recorded,
+        },
+      });
+      return;
+    } catch (error) {
+      logger.error('[SupplierController] Error creating unrecorded supplier:', error);
       next(error);
     }
   }
