@@ -138,6 +138,174 @@ export class SupplierItemService {
     await prisma.supplier_item.update({ where: { supplier_id_item_id: { supplier_id: supplierId, item_id: itemId } }, data: { is_deleted: true } });
     return { success: true };
   }
+
+  /**
+   * Get supplier_item by supplier_code and item_code (for purchase request enrichment)
+   */
+  async getBySupplierAndItemCodes(supplierCode: string, itemCode: string) {
+    // Find supplier by code
+    const supplier = await prisma.supplier.findFirst({
+      where: { supplier_code: supplierCode, is_deleted: false }
+    });
+    if (!supplier) {
+      throw new NotFoundError('Supplier not found');
+    }
+
+    // Find item by code
+    const item = await prisma.item.findFirst({
+      where: { item_code: itemCode, is_deleted: false }
+    });
+    if (!item) {
+      throw new NotFoundError('Item not found');
+    }
+
+    // Find supplier_item
+    const supplierItem = await prisma.supplier_item.findUnique({
+      where: {
+        supplier_id_item_id: {
+          supplier_id: supplier.id,
+          item_id: item.id
+        }
+      },
+      include: {
+        supplier: {
+          select: {
+            id: true,
+            supplier_code: true,
+            supplier_name: true,
+            contact_number: true,
+            email: true,
+            street: true,
+            barangay: true,
+            city: true,
+            province: true
+          }
+        },
+        item: {
+          select: {
+            id: true,
+            item_code: true,
+            item_name: true
+          }
+        },
+        supplier_unit: {
+          select: {
+            id: true,
+            unit_code: true,
+            unit_name: true,
+            abbreviation: true
+          }
+        }
+      }
+    });
+
+    if (!supplierItem || supplierItem.is_deleted) {
+      throw new NotFoundError('Supplier-item relation not found');
+    }
+
+    return {
+      success: true,
+      data: {
+        supplier_id: supplierItem.supplier_id,
+        item_id: supplierItem.item_id,
+        supplier_unit_id: supplierItem.supplier_unit_id,
+        conversion_amount: supplierItem.conversion_amount,
+        unit_price: supplierItem.unit_price,
+        description: supplierItem.description,
+        supplier: supplierItem.supplier,
+        item: supplierItem.item,
+        supplier_unit: supplierItem.supplier_unit,
+        created_at: supplierItem.created_at,
+        updated_at: supplierItem.updated_at
+      }
+    };
+  }
+
+  /**
+   * Create supplier-item relation (from purchase request)
+   * Links an item to a supplier with pricing information
+   */
+  async createSupplierItemRelation(data: {
+    supplierCode: string;
+    itemCode: string;
+    unitPrice: number;
+    supplierUnitId?: number;
+    conversionAmount?: number;
+    description?: string;
+    createdBy?: string;
+  }) {
+    // Find supplier
+    const supplier = await prisma.supplier.findFirst({
+      where: { supplier_code: data.supplierCode, is_deleted: false }
+    });
+    if (!supplier) {
+      throw new NotFoundError('Supplier not found');
+    }
+
+    // Find item
+    const item = await prisma.item.findFirst({
+      where: { item_code: data.itemCode, is_deleted: false }
+    });
+    if (!item) {
+      throw new NotFoundError('Item not found');
+    }
+
+    // Check if relation already exists
+    const existing = await prisma.supplier_item.findUnique({
+      where: {
+        supplier_id_item_id: {
+          supplier_id: supplier.id,
+          item_id: item.id
+        }
+      }
+    });
+
+    if (existing && !existing.is_deleted) {
+      // Update existing relation
+      const updated = await prisma.supplier_item.update({
+        where: {
+          supplier_id_item_id: {
+            supplier_id: supplier.id,
+            item_id: item.id
+          }
+        },
+        data: {
+          unit_price: data.unitPrice,
+          supplier_unit_id: data.supplierUnitId || item.unit_id || 1,
+          conversion_amount: data.conversionAmount || 1,
+          description: data.description,
+          updated_at: new Date(),
+        },
+        include: {
+          supplier: true,
+          item: true,
+          supplier_unit: true,
+        }
+      });
+      return updated;
+    }
+
+    // Create new relation
+    const supplierItem = await prisma.supplier_item.create({
+      data: {
+        supplier_id: supplier.id,
+        item_id: item.id,
+        supplier_unit_id: data.supplierUnitId || item.unit_id || 1,
+        conversion_amount: data.conversionAmount || 1,
+        unit_price: data.unitPrice,
+        description: data.description,
+        is_recorded: false,
+        created_by: data.createdBy || 'purchase-request',
+      },
+      include: {
+        supplier: true,
+        item: true,
+        supplier_unit: true,
+      }
+    });
+
+    return supplierItem;
+  }
 }
 
 export const supplierItemService = new SupplierItemService();

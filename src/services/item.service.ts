@@ -131,11 +131,14 @@ export class ItemService {
         category: true,
         unit: true,
         stocks: true,
+        _count: {
+          select: { supplier_items: { where: { is_deleted: false } } },
+        },
       },
     });
 
     if (!item) {
-      throw new NotFoundError(`Item with code ${itemCode} not found`);
+      return null;
     }
 
     return item;
@@ -205,6 +208,81 @@ export class ItemService {
     });
 
     logger.info(`Item created: ${item.item_code}`, { userId });
+    return item;
+  }
+
+  /**
+   * Create unrecorded item (from purchase request)
+   * Items created this way have is_recorded=false for pending approval
+   */
+  async createUnrecordedItem(data: {
+    itemName: string;
+    unitId?: number;
+    unitName?: string;
+    description?: string;
+    createdBy?: string;
+  }) {
+    // Check if item already exists
+    const existing = await prisma.item.findFirst({
+      where: {
+        item_name: data.itemName,
+        is_deleted: false,
+      },
+    });
+
+    if (existing) {
+      return existing;
+    }
+
+    // Get or create unit
+    let unitId = data.unitId;
+    if (!unitId && data.unitName) {
+      const unit = await prisma.unit_measure.findFirst({
+        where: {
+          unit_name: data.unitName,
+          is_deleted: false,
+        },
+      });
+
+      if (unit) {
+        unitId = unit.id;
+      } else {
+        // Create unit (no is_recorded field in unit_measure table)
+        const newUnit = await prisma.unit_measure.create({
+          data: {
+            unit_code: await generateId('unit', 'UNT'),
+            unit_name: data.unitName,
+            created_by: data.createdBy || 'purchase-request',
+          },
+        });
+        unitId = newUnit.id;
+      }
+    }
+
+    // Default to first category if not specified (Uncategorized/General)
+    const defaultCategory = await prisma.category.findFirst({
+      where: { is_deleted: false },
+      orderBy: { id: 'asc' },
+    });
+
+    const item = await prisma.item.create({
+      data: {
+        item_code: await generateId('item', 'ITM'),
+        item_name: data.itemName,
+        category_id: defaultCategory?.id || 1,
+        unit_id: unitId || 1,
+        status: 'ACTIVE',
+        description: data.description,
+        is_recorded: false,
+        created_by: data.createdBy || 'purchase-request',
+      },
+      include: {
+        category: true,
+        unit: true,
+      },
+    });
+
+    logger.info(`Unrecorded item created: ${item.item_code}`);
     return item;
   }
 

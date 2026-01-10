@@ -59,27 +59,39 @@ export class ItemController {
 
   /**
    * GET /api/v1/admin/items/:id
-   * Get a single item by ID
+   * Get a single item by ID or item_code
    */
   async getItemById(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
     try {
-      const id = parseInt(req.params.id, 10);
+      const idParam = req.params.id;
+      const numericId = parseInt(idParam, 10);
 
-      if (isNaN(id)) {
-        res.status(400).json({ error: 'Invalid item ID' });
+      logger.info(`[ItemController] Get item by ID/Code: ${idParam}`);
+
+      let item;
+      if (isNaN(numericId)) {
+        // Treat as item_code
+        item = await itemService.getItemByCode(idParam);
+      } else {
+        // Treat as numeric ID
+        item = await itemService.getItemById(numericId);
+      }
+
+      if (!item) {
+        res.status(404).json({ success: false, error: 'Item not found' });
         return;
       }
 
-      logger.info(`[ItemController] Get item by ID: ${id}`);
-
-      const item = await itemService.getItemById(id);
       // compute supplierCount if present in _count
       const supplierCount = (item as any)._count?.supplier_items ?? 0;
       const out = {
-        ...(item as Record<string, unknown>),
-  // make sure frontend receives item_id property (string code)
-  item_id: ((item as any).item_code),
-        supplierCount,
+        success: true,
+        data: {
+          ...(item as Record<string, unknown>),
+          // make sure frontend receives item_id property (string code)
+          item_id: ((item as any).item_code),
+          supplierCount,
+        }
       };
       res.json(out);
     } catch (error) {
@@ -197,6 +209,55 @@ export class ItemController {
       res.json(result);
     } catch (error) {
       logger.error('[ItemController] Error deleting item:', error);
+      next(error);
+    }
+  }
+
+  /**
+   * POST /api/v1/admin/items/unrecorded
+   * Create unrecorded item (from purchase request)
+   */
+  async createUnrecordedItem(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      logger.info('[ItemController] Create unrecorded item request', {
+        body: req.body,
+        user: req.user,
+      });
+
+      const { itemName, unitId, unitName, description } = req.body;
+
+      if (!itemName) {
+        res.status(400).json({ error: 'Item name is required' });
+        return;
+      }
+
+      const userId = req.user?.sub || 'purchase-request';
+      const item = await itemService.createUnrecordedItem({
+        itemName,
+        unitId,
+        unitName,
+        description,
+        createdBy: userId,
+      });
+
+      const itemData: any = item; // Type assertion for included relations
+
+      res.status(201).json({
+        success: true,
+        data: {
+          item_code: itemData.item_code,
+          item_name: itemData.item_name,
+          category_id: itemData.category_id,
+          unit_id: itemData.unit_id,
+          status: itemData.status,
+          description: itemData.description,
+          is_recorded: itemData.is_recorded,
+          category: itemData.category || null,
+          unit: itemData.unit || null,
+        },
+      });
+    } catch (error) {
+      logger.error('[ItemController] Error creating unrecorded item:', error);
       next(error);
     }
   }

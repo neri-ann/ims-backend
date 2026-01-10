@@ -160,8 +160,8 @@ model item {
 id          Int          @id @default(autoincrement())
 item_code   String       @unique
 item_name   String
-category_id Int
-unit_id     Int
+category_id Int?
+unit_id     Int?
 status      item_status  @default(ACTIVE)
 description String?      @db.Text
 is_deleted  Boolean      @default(false)
@@ -177,8 +177,8 @@ deleted_by  String?
 deleted_at  DateTime?
 
 // Relations
-category       category        @relation(fields: [category_id], references: [id])
-unit           unit_measure    @relation(fields: [unit_id], references: [id])
+category       category?        @relation(fields: [category_id], references: [id])
+unit           unit_measure?    @relation(fields: [unit_id], references: [id])
 supplier_items supplier_item[]
 stocks         stock[]
 

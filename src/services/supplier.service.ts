@@ -134,6 +134,57 @@ export class SupplierService {
     if (!supplier) throw new NotFoundError('Supplier not found');
     return supplier;
   }
+
+  async getByCode(code: string) {
+    const supplier = await prisma.supplier.findFirst({ where: { supplier_code: code, is_deleted: false } });
+    if (!supplier) throw new NotFoundError('Supplier not found');
+    return supplier;
+  }
+
+  /**
+   * Create unrecorded supplier (from purchase request)
+   * Suppliers created this way have is_recorded=false for pending approval
+   */
+  async createUnrecordedSupplier(data: {
+    supplierName: string;
+    contactNumber?: string;
+    email?: string;
+    street?: string;
+    barangay?: string;
+    city?: string;
+    province?: string;
+    createdBy?: string;
+  }) {
+    // Check if supplier already exists by name
+    const existing = await prisma.supplier.findFirst({
+      where: {
+        supplier_name: data.supplierName,
+        is_deleted: false,
+      },
+    });
+
+    if (existing) {
+      return existing;
+    }
+
+    const supplier = await prisma.supplier.create({
+      data: {
+        supplier_code: await generateId('supplier', 'SUP'),
+        supplier_name: data.supplierName,
+        contact_number: data.contactNumber,
+        email: data.email,
+        street: data.street,
+        barangay: data.barangay,
+        city: data.city,
+        province: data.province,
+        status: 'ACTIVE',
+        is_recorded: false,
+        created_by: data.createdBy || 'purchase-request',
+      },
+    });
+
+    return supplier;
+  }
 }
 
 export const supplierService = new SupplierService();
