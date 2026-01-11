@@ -67,7 +67,7 @@ export class StockService {
     }
 
     if (filters.category) where.item = { category: { category_name: { contains: filters.category, mode: 'insensitive' } } } as any;
-    
+
     if (filters.fromDate || filters.toDate) {
       const range: any = {};
       if (filters.fromDate) range.gte = new Date(filters.fromDate);
@@ -111,7 +111,7 @@ export class StockService {
 
       return {
         id: r.id,
-        itemId: r.item_id,
+        itemId: r.item?.id,
         stockCode: `STK-${r.id.toString().padStart(5, '0')}`,
         itemName: r.item?.item_name,
         unit: r.item?.unit?.abbreviation || r.item?.unit?.unit_name,

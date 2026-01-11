@@ -1,15 +1,23 @@
 
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
 import { config } from '../config/env';
 import { logger } from '../config/logger';
+import { verifyAccessToken } from '../lib/jwks-verifier';
 
+/**
+ * JWT Payload interface matching ms-auth token structure
+ */
 export interface JWTPayload {
-  sub: string;        // User ID (matches userId field)
-  username: string;   // Username
-  role: string;       // User role (admin, staff, inventory_manager, etc.)
-  iat: number;        // Issued at
-  exp: number;        // Expires at
+  sub: string;              // User ID
+  employeeNumber?: string;  // Employee number
+  employeeId?: string;      // Employee ID
+  role?: string;            // User role (singular string, e.g., 'USER', 'ADMIN')
+  departmentIds?: string[]; // Department IDs
+  departmentName?: string[];  // Department names (array)
+  positionName?: string[];    // Position names (array)
+  jti?: string;             // JWT ID
+  iat?: number;             // Issued at
+  exp?: number;             // Expires at
 }
 
 // Extend Express Request to include user
@@ -26,15 +34,15 @@ export interface AuthRequest extends Request {
 }
 
 /**
- * Authentication middleware - validates JWT token
+ * Authentication middleware - validates JWT token using JWKS
  * 
  * IMPORTANT: Inventory service does NOT handle passwords or user login.
- * The HR Auth Microservice handles all authentication.
- * This middleware ONLY validates JWT tokens.
+ * The ms-auth microservice handles all authentication and issues tokens.
+ * This middleware verifies tokens using the public key from ms-auth JWKS endpoint.
  * 
  * Can be disabled via ENABLE_JWT_AUTH=false in .env (for development only)
  */
-export const authenticate = (
+export const authenticate = async (
   req: AuthRequest,
   res: Response,
   next: NextFunction
@@ -45,8 +53,8 @@ export const authenticate = (
     // Create a mock user for development
     req.user = {
       sub: 'dev-user-id',
-      username: 'dev-user',
-      role: 'admin',
+      employeeNumber: 'DEV-001',
+      role: 'ADMIN',
       iat: Date.now(),
       exp: Date.now() + 3600000,
     };
@@ -56,7 +64,7 @@ export const authenticate = (
   try {
     // Get token from header
     const authHeader = req.headers.authorization;
-    
+
     if (!authHeader || !authHeader.startsWith('Bearer ')) {
       return res.status(401).json({
         success: false,
@@ -66,23 +74,36 @@ export const authenticate = (
 
     const token = authHeader.substring(7); // Remove 'Bearer '
 
-    // Verify token with shared JWT secret
-    const decoded = jwt.verify(token, config.jwtSecret) as JWTPayload;
+    // Verify token using JWKS (RS256)
+    const decoded = await verifyAccessToken(token);
 
     // Attach user to request
-    req.user = decoded;
+    req.user = {
+      sub: decoded.sub,
+      employeeNumber: decoded.employeeNumber,
+      employeeId: decoded.employeeId,
+      role: decoded.role,
+      departmentIds: decoded.departmentIds,
+      departmentName: decoded.departmentName,
+      positionName: decoded.positionName,
+      jti: decoded.jti,
+      iat: decoded.iat as number,
+      exp: decoded.exp as number,
+    };
 
-    logger.debug(`✅ User authenticated: ${decoded.username} (${decoded.role})`);
+    logger.debug(`✅ User authenticated: ${decoded.employeeNumber || decoded.sub} (role: ${decoded.role || 'none'})`);
     next();
   } catch (error) {
-    if (error instanceof jwt.TokenExpiredError) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+
+    if (errorMessage.includes('expired')) {
       return res.status(401).json({
         success: false,
         message: 'Token expired',
       });
     }
 
-    if (error instanceof jwt.JsonWebTokenError) {
+    if (errorMessage.includes('Invalid') || errorMessage.includes('invalid')) {
       return res.status(401).json({
         success: false,
         message: 'Invalid token',
@@ -90,7 +111,7 @@ export const authenticate = (
     }
 
     logger.error('Authentication error:', error);
-    return res.status(500).json({
+    return res.status(401).json({
       success: false,
       message: 'Authentication failed',
     });
@@ -101,7 +122,7 @@ export const authenticate = (
  * Optional authentication - validates token if present but doesn't require it
  * Useful for endpoints that work with or without authentication
  */
-export const optionalAuth = (
+export const optionalAuth = async (
   req: AuthRequest,
   _res: Response,
   next: NextFunction
@@ -111,18 +132,30 @@ export const optionalAuth = (
   }
 
   const authHeader = req.headers.authorization;
-  
+
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return next(); // No token, continue without user
   }
 
   try {
     const token = authHeader.substring(7);
-    const decoded = jwt.verify(token, config.jwtSecret) as JWTPayload;
-    req.user = decoded;
+    const decoded = await verifyAccessToken(token);
+    req.user = {
+      sub: decoded.sub,
+      employeeNumber: decoded.employeeNumber,
+      employeeId: decoded.employeeId,
+      role: decoded.role,
+      departmentIds: decoded.departmentIds,
+      departmentName: decoded.departmentName,
+      positionName: decoded.positionName,
+      jti: decoded.jti,
+      iat: decoded.iat as number,
+      exp: decoded.exp as number,
+    };
     next();
   } catch (error) {
     // Invalid token, but that's okay for optional auth
     next();
   }
 };
+
