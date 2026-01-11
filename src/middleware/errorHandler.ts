@@ -41,6 +41,11 @@ export const errorHandler = (
     statusCode = err.statusCode;
     message = err.message;
   }
+  // Handle custom errors with statusCode property (NotFoundError, BadRequestError, etc.)
+  else if ('statusCode' in err && typeof (err as any).statusCode === 'number') {
+    statusCode = (err as any).statusCode;
+    message = err.message;
+  }
 
   // Handle Prisma errors
   if (err.name === 'PrismaClientKnownRequestError') {
