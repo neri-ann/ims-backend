@@ -178,7 +178,7 @@ export class StockService {
     const totalQty = (s.batches || []).reduce((acc: number, b: any) => acc + Number(b.quantity || 0), 0);
     const status = computeStatusFromRules(totalQty, Number(s.reorder_level || 0), s.item?.category?.category_name, s.status, s.batches);
 
-    return { stock: { id: s.id, itemId: s.item_id, itemName: s.item?.item_name, stockCode: `STK-${s.id.toString().padStart(5, '0')}`, unit: s.item?.unit?.abbreviation || s.item?.unit?.unit_name, category: s.item?.category?.category_name, currentStock: totalQty, reorderLevel: Number(s.reorder_level || 0), status, createdAt: formatLongDate(s.created_at), updatedAt: formatLongDate(s.updated_at) }, batches };
+    return { stock: { id: s.id, itemId: s.item?.id, itemName: s.item?.item_name, stockCode: `STK-${s.id.toString().padStart(5, '0')}`, unit: s.item?.unit?.abbreviation || s.item?.unit?.unit_name, category: s.item?.category?.category_name, currentStock: totalQty, reorderLevel: Number(s.reorder_level || 0), status, createdAt: formatLongDate(s.created_at), updatedAt: formatLongDate(s.updated_at) }, batches };
   }
 
   async createStock(payload: any, userId: string) {
@@ -186,11 +186,12 @@ export class StockService {
 
     const item = await prisma.item.findFirst({ where: { id: payload.itemId, is_deleted: false }, include: { category: true } });
     if (!item) throw new NotFoundError('Item not found');
+    if (!item.item_code) throw new BadRequestError('Item must have an item_code');
 
     const isConsumable = (item.category?.category_name || '').toLowerCase() === 'consumable';
     if (isConsumable && (typeof payload.reorderLevel === 'undefined' || payload.reorderLevel === null)) throw new BadRequestError('reorderLevel is required for consumables');
 
-    const stock = await prisma.stock.create({ data: { item_id: payload.itemId, current_stock: payload.currentStock ?? 0, reorder_level: payload.reorderLevel ?? 0, status: 'AVAILABLE', created_by: userId } });
+    const stock = await prisma.stock.create({ data: { item_code: item.item_code, current_stock: payload.currentStock ?? 0, reorder_level: payload.reorderLevel ?? 0, status: 'AVAILABLE', created_by: userId } });
 
     if (Array.isArray(payload.batches) && payload.batches.length) {
       for (const b of payload.batches) await prisma.batch.create({ data: { stock_id: stock.id, batch_number: b.batchNumber, quantity: b.quantity ?? 0, expiration_date: b.expirationDate ? new Date(b.expirationDate) : undefined, received_date: b.receivedDate ? new Date(b.receivedDate) : undefined, remarks: b.remarks, created_by: userId } });

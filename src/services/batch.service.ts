@@ -16,8 +16,8 @@ export interface BatchWithDetails {
   stock_id: number;
   stock: {
     id: number;
-    item_code: string;
-    item_name: string;
+    item_code: string | null;
+    item_name: string | null;
     unit_name: string | null;
     abbreviation: string | null;
   };
@@ -72,18 +72,9 @@ export class BatchService {
             },
           },
         },
-        orderBy: [
-          {
-            stock: {
-              item: {
-                item_name: 'asc',
-              },
-            },
-          },
-          {
-            batch_number: 'asc',
-          },
-        ],
+        orderBy: {
+          batch_number: 'asc',
+        },
       });
 
       // Transform the data to match the desired structure
@@ -152,18 +143,9 @@ export class BatchService {
             },
           },
         },
-        orderBy: [
-          {
-            stock: {
-              item: {
-                item_name: 'asc',
-              },
-            },
-          },
-          {
-            batch_number: 'asc',
-          },
-        ],
+        orderBy: {
+          batch_number: 'asc',
+        },
       });
 
       // Transform the data to match the desired structure
