@@ -62,6 +62,63 @@ export class BatchController {
       next(error);
     }
   }
+
+  /**
+   * PATCH /api/v1/admin/batches/deduct
+   * Deduct quantity from batches by stock_id
+   * Body: { stockId: number, quantity: number }
+   */
+  async deductBatchQuantity(req: AuthRequest, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { stockId, quantity } = req.body;
+
+      logger.info('[BatchController] Deduct batch quantity request', {
+        user: req.user,
+        stockId,
+        quantity,
+      });
+
+      // Validate required fields
+      if (!stockId || stockId <= 0) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid or missing stockId',
+        });
+        return;
+      }
+
+      if (!quantity || quantity <= 0) {
+        res.status(400).json({
+          success: false,
+          message: 'Invalid or missing quantity. Must be greater than 0',
+        });
+        return;
+      }
+
+      // Get user info for audit trail
+      const updatedBy = req.user?.employeeNumber || req.user?.sub || 'system';
+
+      const result = await batchService.deductBatchQuantity(stockId, quantity, updatedBy);
+
+      if (!result.success) {
+        res.status(400).json({
+          success: false,
+          message: result.message,
+          data: result,
+        });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        message: result.message,
+        data: result,
+      });
+    } catch (error) {
+      logger.error('[BatchController] Error deducting batch quantity:', error);
+      next(error);
+    }
+  }
 }
 
 export const batchController = new BatchController();

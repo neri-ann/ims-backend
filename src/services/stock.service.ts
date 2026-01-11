@@ -13,19 +13,23 @@ function computeStatusFromRules(totalQty: number, reorderLevel: number, category
   const cat = (category || '').toLowerCase();
   const today = new Date();
 
-  // EXPIRED: any batch expiration_date <= today
+  // EXPIRED: any batch expiration_date <= today (auto-computed, takes priority)
   if (batches && batches.some((b: any) => b.expiration_date && new Date(b.expiration_date) <= today)) return 'EXPIRED';
 
+  // For consumables, always compute status based on quantity (for accurate inventory tracking)
   if (cat === 'consumable') {
     if (totalQty === 0) return 'OUT_OF_STOCK';
     if (totalQty < reorderLevel) return 'LOW_STOCK';
     return 'AVAILABLE';
   }
 
-  // non-consumable: check storedStatus for IN_USE / UNDER_MAINTENANCE
-  if (storedStatus === 'IN_USE') return 'IN_USE';
-  if (storedStatus === 'UNDER_MAINTENANCE') return 'UNDER_MAINTENANCE';
+  // For non-consumables (Equipment, Tool, etc.), respect the stored status from database
+  // These are typically manually managed statuses
+  if (storedStatus && storedStatus !== 'INACTIVE') {
+    return storedStatus;
+  }
 
+  // Fallback: compute based on quantity if no stored status or INACTIVE
   return totalQty > 0 ? 'AVAILABLE' : 'OUT_OF_STOCK';
 }
 

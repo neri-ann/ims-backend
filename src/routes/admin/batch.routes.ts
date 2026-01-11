@@ -28,4 +28,12 @@ router.get('/consumable', ...authMiddleware, batchController.getConsumableBatche
  */
 router.get('/non-consumable', ...authMiddleware, batchController.getNonConsumableBatches.bind(batchController));
 
+/**
+ * @route   PATCH /api/v1/admin/batches/deduct
+ * @desc    Deduct quantity from batches by stock_id (nearest expiration first)
+ * @body    { stockId: number, quantity: number }
+ * @access  Admin, Inventory Manager, Employee
+ */
+router.patch('/deduct', ...authMiddleware, batchController.deductBatchQuantity.bind(batchController));
+
 export default router;
