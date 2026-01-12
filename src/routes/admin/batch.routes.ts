@@ -1,39 +1,37 @@
 /**
  * Batch Routes (Admin)
  * RESTful API endpoints for batch management
- * Requires authentication
+ * Public endpoints for stock-out integration
  */
 
 import { Router } from 'express';
 import { batchController } from '../../controllers/batch.controller';
-import { authenticate } from '../../middleware/auth';
-import { authorize } from '../../middleware/authorize';
 
 const router = Router();
 
-// All routes require authentication
-const authMiddleware = [authenticate, authorize('admin', 'inventory_manager', 'employee')];
+// Note: These endpoints are public for cross-service integration
+// The purchase-request frontend needs to access batches without auth
 
 /**
  * @route   GET /api/v1/admin/batches/consumable
  * @desc    Get consumable batches (AVAILABLE or LOW_STOCK)
- * @access  Admin, Inventory Manager, Employee
+ * @access  Public (for cross-service integration)
  */
-router.get('/consumable', ...authMiddleware, batchController.getConsumableBatches.bind(batchController));
+router.get('/consumable', batchController.getConsumableBatches.bind(batchController));
 
 /**
  * @route   GET /api/v1/admin/batches/non-consumable
  * @desc    Get non-consumable batches (AVAILABLE only)
- * @access  Admin, Inventory Manager, Employee
+ * @access  Public (for cross-service integration)
  */
-router.get('/non-consumable', ...authMiddleware, batchController.getNonConsumableBatches.bind(batchController));
+router.get('/non-consumable', batchController.getNonConsumableBatches.bind(batchController));
 
 /**
  * @route   PATCH /api/v1/admin/batches/deduct
  * @desc    Deduct quantity from batches by stock_id (nearest expiration first)
  * @body    { stockId: number, quantity: number }
- * @access  Admin, Inventory Manager, Employee
+ * @access  Public (for cross-service integration)
  */
-router.patch('/deduct', ...authMiddleware, batchController.deductBatchQuantity.bind(batchController));
+router.patch('/deduct', batchController.deductBatchQuantity.bind(batchController));
 
 export default router;
