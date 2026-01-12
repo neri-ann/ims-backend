@@ -1,6 +1,7 @@
 
 import { Request, Response, NextFunction } from 'express';
 import { logger } from '../config/logger';
+import { config } from '../config/env';
 // auth bypass: verifyAccessToken not required when bypassing auth
 
 /**
@@ -46,12 +47,27 @@ export const authenticate = async (
   _res: Response,
   next: NextFunction
 ) => {
-  // FORCE-BYPASS AUTH: Always set a mock user and continue.
-  // This is intentionally permissive to allow frontend dev/testing without tokens.
-  logger.warn('⚠️  FORCED AUTH BYPASS: authentication disabled by middleware');
-  // touch request to avoid unused param warnings
-  const _reqOrigin = (req.headers && (req.headers as any).origin) || '';
-  void _reqOrigin;
+  // Check if JWT auth is disabled
+  if (!config.enableJwtAuth) {
+    // FORCE-BYPASS AUTH: Always set a mock user and continue.
+    // This is intentionally permissive to allow frontend dev/testing without tokens.
+    logger.warn('⚠️  FORCED AUTH BYPASS: authentication disabled by middleware');
+    // touch request to avoid unused param warnings
+    const _reqOrigin = (req.headers && (req.headers as any).origin) || '';
+    void _reqOrigin;
+    req.user = {
+      sub: 'dev-user-id',
+      employeeNumber: 'DEV-001',
+      role: 'ADMIN',
+      iat: Math.floor(Date.now() / 1000),
+      exp: Math.floor(Date.now() / 1000) + 3600,
+    };
+    return next();
+  }
+
+  // TODO: Implement actual JWT verification using JWKS from ms-auth
+  // For now, since auth is enabled but not implemented, bypass with warning
+  logger.warn('⚠️  JWT AUTH ENABLED BUT NOT IMPLEMENTED: bypassing for now');
   req.user = {
     sub: 'dev-user-id',
     employeeNumber: 'DEV-001',
