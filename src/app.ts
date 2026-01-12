@@ -27,9 +27,13 @@ export const createApp = (): Application => {
 
   // Security middleware
   app.use(helmet());
+  
+  // CORS - Allow all origins for cross-domain access
   app.use(cors({
-    origin: config.corsOrigins,
+    origin: true, // Allow all origins
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   }));
 
   // Body parsing
