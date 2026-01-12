@@ -74,7 +74,7 @@ export const config: Config = {
     auditLogs: process.env.AUDIT_API_URL || 'http://localhost:4004',
   },
   
-  corsOrigins: (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,http://localhost:3001,http://localhost:4000').split(','),
+  corsOrigins: (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,http://localhost:3001,http://localhost:4000,https://purchase-request.vercel.app').split(','),
   rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
   rateLimitMax: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),
   
