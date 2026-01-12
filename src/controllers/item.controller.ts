@@ -111,7 +111,7 @@ export class ItemController {
         user: req.user,
       });
 
-      const userId = req.user?.sub || 'system';
+      const userId = req.user?.sub || '1';
       
       // Map snake_case from frontend to camelCase for service
       const data: ItemCreateData = {
@@ -163,7 +163,7 @@ export class ItemController {
         user: req.user,
       });
 
-      const userId = req.user?.sub || 'system';
+      const userId = req.user?.sub || '1';
       
       // Map snake_case from frontend to camelCase for service
       const data: ItemUpdateData = {
@@ -203,7 +203,7 @@ export class ItemController {
 
       logger.info(`[ItemController] Delete item: ${id}`, { user: req.user });
 
-      const userId = req.user?.sub || 'system';
+      const userId = req.user?.sub || '1';
       const result = await itemService.deleteItem(id, userId);
 
       res.json(result);
@@ -231,7 +231,7 @@ export class ItemController {
         return;
       }
 
-      const userId = req.user?.sub || 'purchase-request';
+      const userId = req.user?.sub || '1';
       const item = await itemService.createUnrecordedItem({
         itemName,
         unitId,

@@ -15,6 +15,7 @@ import adminCategoryRoutes from './routes/admin/category.routes';
 import adminUnitRoutes from './routes/admin/unit.routes';
 import adminChatbotRoutes from './routes/admin/chatbot.routes';
 import adminStockRoutes from './routes/admin/stock.routes';
+import adminBatchRoutes from './routes/admin/batch.routes';
 // TODO: Add more routes as you create them:
 // import adminStockRoutes from './routes/admin/stock.routes';
 // import adminBusRoutes from './routes/admin/bus.routes';
@@ -26,9 +27,13 @@ export const createApp = (): Application => {
 
   // Security middleware
   app.use(helmet());
+  
+  // CORS - Allow all origins for cross-domain access
   app.use(cors({
-    origin: config.corsOrigins,
+    origin: true, // Allow all origins
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   }));
 
   // Body parsing
@@ -91,6 +96,8 @@ export const createApp = (): Application => {
   app.use('/api/v1/admin/chatbot', adminChatbotRoutes);
   // Stock routes
   app.use('/api/v1/admin/stocks', adminStockRoutes);
+  // Batch routes
+  app.use('/api/v1/admin/batches', adminBatchRoutes);
   // TODO: Add more admin routes here:
   // app.use('/api/v1/admin/buses', adminBusRoutes);
   // app.use('/api/v1/admin/orders', adminOrderRoutes);

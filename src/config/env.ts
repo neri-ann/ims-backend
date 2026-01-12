@@ -74,7 +74,9 @@ export const config: Config = {
     auditLogs: process.env.AUDIT_API_URL || 'http://localhost:4004',
   },
   
-  corsOrigins: (process.env.ALLOWED_ORIGINS || 'http://localhost:3000,http://localhost:3001,http://localhost:4000').split(','),
+  corsOrigins: process.env.ALLOWED_ORIGINS 
+    ? process.env.ALLOWED_ORIGINS.split(',')
+    : ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:3006', 'http://localhost:3007', 'http://localhost:4000', 'http://localhost:4001', 'https://purchase-request.vercel.app', 'https://ims-frontend.vercel.app'],
   rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || '900000', 10),
   rateLimitMax: parseInt(process.env.RATE_LIMIT_MAX || '100', 10),
   
