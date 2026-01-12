@@ -16,11 +16,9 @@ import adminUnitRoutes from './routes/admin/unit.routes';
 import adminChatbotRoutes from './routes/admin/chatbot.routes';
 import adminStockRoutes from './routes/admin/stock.routes';
 import adminBatchRoutes from './routes/admin/batch.routes';
-// TODO: Add more routes as you create them:
-// import adminStockRoutes from './routes/admin/stock.routes';
-// import adminBusRoutes from './routes/admin/bus.routes';
-// import adminOrderRoutes from './routes/admin/order.routes';
-// import adminDisposalRoutes from './routes/admin/disposal.routes';
+import adminBusRoutes from './routes/admin/bus.routes';
+import adminBusOperationRoutes from './routes/admin/bus-operation.routes';
+import adminDisposalRoutes from './routes/admin/disposal.routes';
 
 export const createApp = (): Application => {
   const app = express();
@@ -99,9 +97,10 @@ export const createApp = (): Application => {
   // Batch routes
   app.use('/api/v1/admin/batches', adminBatchRoutes);
   // TODO: Add more admin routes here:
-  // app.use('/api/v1/admin/buses', adminBusRoutes);
+  app.use('/api/v1/admin/buses', adminBusRoutes);
+  app.use('/api/v1/admin/bus-operation', adminBusOperationRoutes);
+  app.use('/api/v1/admin/disposals', adminDisposalRoutes);
   // app.use('/api/v1/admin/orders', adminOrderRoutes);
-  // app.use('/api/v1/admin/disposals', adminDisposalRoutes);
   
   // Staff routes (Limited access - read + create for some modules)
   // TODO: Add staff routes as needed
