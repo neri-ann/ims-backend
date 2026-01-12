@@ -16,7 +16,12 @@ export const getAllBuses = async (_req: Request, res: Response) => {
 
 export const getBusById = async (req: Request, res: Response) => {
   try {
-    const bus = await busService.getBusById(Number(req.params.id));
+    const id = Number(req.params.id);
+    if (isNaN(id) || !Number.isFinite(id)) {
+      res.status(400).json({ error: 'Invalid bus id' });
+      return;
+    }
+    const bus = await busService.getBusById(id);
     if (!bus) {
       res.status(404).json({ error: 'Bus not found' });
       return;

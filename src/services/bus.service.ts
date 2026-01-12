@@ -1,6 +1,19 @@
-// src/services/bus.service.ts
+
 import { PrismaClient } from '@prisma/client';
 const prisma = new PrismaClient();
+
+export const getActiveBusesForOperation = async () => {
+  return prisma.bus.findMany({
+    where: { status: 'ACTIVE' },
+    select: {
+      id: true,
+      plate_number: true,
+      body_number: true,
+      bus_type: true,
+      seat_capacity: true,
+    },
+  });
+};
 
 export const getAllBuses = async () => {
   return prisma.bus.findMany({
@@ -14,7 +27,7 @@ export const getAllBuses = async () => {
 
 export const getBusById = async (id: number) => {
   return prisma.bus.findUnique({
-    where: { id },
+    where: { id: id },
     include: {
       manufacturer: true,
       body_builder: true,
