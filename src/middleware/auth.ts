@@ -1,8 +1,7 @@
 
 import { Request, Response, NextFunction } from 'express';
-import { config } from '../config/env';
 import { logger } from '../config/logger';
-import { verifyAccessToken } from '../lib/jwks-verifier';
+// auth bypass: verifyAccessToken not required when bypassing auth
 
 /**
  * JWT Payload interface matching ms-auth token structure
@@ -44,78 +43,23 @@ export interface AuthRequest extends Request {
  */
 export const authenticate = async (
   req: AuthRequest,
-  res: Response,
+  _res: Response,
   next: NextFunction
 ) => {
-  // If JWT is disabled, skip authentication (development mode only)
-  if (!config.enableJwtAuth) {
-    logger.warn('⚠️  JWT Authentication bypassed (ENABLE_JWT_AUTH=false)');
-    // Create a mock user for development
-    req.user = {
-      sub: 'dev-user-id',
-      employeeNumber: 'DEV-001',
-      role: 'ADMIN',
-      iat: Date.now(),
-      exp: Date.now() + 3600000,
-    };
-    return next();
-  }
-
-  try {
-    // Get token from header
-    const authHeader = req.headers.authorization;
-
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({
-        success: false,
-        message: 'No token provided',
-      });
-    }
-
-    const token = authHeader.substring(7); // Remove 'Bearer '
-
-    // Verify token using JWKS (RS256)
-    const decoded = await verifyAccessToken(token);
-
-    // Attach user to request
-    req.user = {
-      sub: decoded.sub,
-      employeeNumber: decoded.employeeNumber,
-      employeeId: decoded.employeeId,
-      role: decoded.role,
-      departmentIds: decoded.departmentIds,
-      departmentName: decoded.departmentName,
-      positionName: decoded.positionName,
-      jti: decoded.jti,
-      iat: decoded.iat as number,
-      exp: decoded.exp as number,
-    };
-
-    logger.debug(`✅ User authenticated: ${decoded.employeeNumber || decoded.sub} (role: ${decoded.role || 'none'})`);
-    next();
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-
-    if (errorMessage.includes('expired')) {
-      return res.status(401).json({
-        success: false,
-        message: 'Token expired',
-      });
-    }
-
-    if (errorMessage.includes('Invalid') || errorMessage.includes('invalid')) {
-      return res.status(401).json({
-        success: false,
-        message: 'Invalid token',
-      });
-    }
-
-    logger.error('Authentication error:', error);
-    return res.status(401).json({
-      success: false,
-      message: 'Authentication failed',
-    });
-  }
+  // FORCE-BYPASS AUTH: Always set a mock user and continue.
+  // This is intentionally permissive to allow frontend dev/testing without tokens.
+  logger.warn('⚠️  FORCED AUTH BYPASS: authentication disabled by middleware');
+  // touch request to avoid unused param warnings
+  const _reqOrigin = (req.headers && (req.headers as any).origin) || '';
+  void _reqOrigin;
+  req.user = {
+    sub: 'dev-user-id',
+    employeeNumber: 'DEV-001',
+    role: 'ADMIN',
+    iat: Math.floor(Date.now() / 1000),
+    exp: Math.floor(Date.now() / 1000) + 3600,
+  };
+  return next();
 };
 
 /**
@@ -127,35 +71,9 @@ export const optionalAuth = async (
   _res: Response,
   next: NextFunction
 ) => {
-  if (!config.enableJwtAuth) {
-    return next();
-  }
-
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return next(); // No token, continue without user
-  }
-
-  try {
-    const token = authHeader.substring(7);
-    const decoded = await verifyAccessToken(token);
-    req.user = {
-      sub: decoded.sub,
-      employeeNumber: decoded.employeeNumber,
-      employeeId: decoded.employeeId,
-      role: decoded.role,
-      departmentIds: decoded.departmentIds,
-      departmentName: decoded.departmentName,
-      positionName: decoded.positionName,
-      jti: decoded.jti,
-      iat: decoded.iat as number,
-      exp: decoded.exp as number,
-    };
-    next();
-  } catch (error) {
-    // Invalid token, but that's okay for optional auth
-    next();
-  }
+  // Optional auth - since we are bypassing global auth, just continue
+  const _reqOriginOpt = (req.headers && (req.headers as any).origin) || '';
+  void _reqOriginOpt;
+  return next();
 };
 
