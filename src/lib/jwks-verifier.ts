@@ -7,7 +7,6 @@
  * @module lib/jwks-verifier
  */
 
-import { createRemoteJWKSet, jwtVerify, JWTPayload } from 'jose';
 import { logger } from '../config/logger';
 
 // Environment configuration
@@ -15,10 +14,13 @@ const MS_AUTH_JWKS_URL = process.env.MS_AUTH_JWKS_URL || 'http://localhost:4002/
 const JWT_EXPECTED_ISS = process.env.JWT_EXPECTED_ISS || 'agila-auth';
 const JWT_EXPECTED_AUD = process.env.JWT_EXPECTED_AUD || 'agila-apis';
 
+// Jose library - loaded dynamically to handle ESM/CJS issues
+let joseModule: any = null;
+
 /**
  * Extended JWT Payload interface with ms-auth specific claims
  */
-export interface MsAuthJWTPayload extends JWTPayload {
+export interface MsAuthJWTPayload {
     sub: string;              // User ID
     employeeNumber?: string;
     employeeId?: string;
@@ -27,18 +29,36 @@ export interface MsAuthJWTPayload extends JWTPayload {
     departmentName?: string[];  // Department names (array)
     positionName?: string[];    // Position names (array)
     jti?: string;             // JWT ID
+    iat?: number;
+    exp?: number;
 }
 
 // Lazy initialization of JWKS client
-let jwksClient: ReturnType<typeof createRemoteJWKSet> | null = null;
+let jwksClient: any = null;
+
+/**
+ * Load jose module lazily
+ */
+async function loadJose() {
+    if (!joseModule) {
+        try {
+            joseModule = await import('jose');
+        } catch (error) {
+            logger.error('Failed to load jose module:', error);
+            throw new Error('JWT verification not available');
+        }
+    }
+    return joseModule;
+}
 
 /**
  * Get or create the JWKS client (singleton pattern)
  */
-function getJwksClient(): ReturnType<typeof createRemoteJWKSet> {
+async function getJwksClient() {
     if (!jwksClient) {
+        const jose = await loadJose();
         logger.info(`🔐 Initializing JWKS client with URL: ${MS_AUTH_JWKS_URL}`);
-        jwksClient = createRemoteJWKSet(new URL(MS_AUTH_JWKS_URL));
+        jwksClient = jose.createRemoteJWKSet(new URL(MS_AUTH_JWKS_URL));
     }
     return jwksClient;
 }
@@ -56,9 +76,10 @@ export async function verifyAccessToken(accessToken: string): Promise<MsAuthJWTP
     }
 
     try {
-        const jwks = getJwksClient();
+        const jose = await loadJose();
+        const jwks = await getJwksClient();
 
-        const { payload } = await jwtVerify(accessToken, jwks, {
+        const { payload } = await jose.jwtVerify(accessToken, jwks, {
             issuer: JWT_EXPECTED_ISS,
             audience: JWT_EXPECTED_AUD,
             clockTolerance: 30, // 30 seconds leeway for clock skew
@@ -80,7 +101,7 @@ export function isJwksConfigured(): boolean {
         || process.env.NODE_ENV === 'development';
 }
 
-// Log configuration on module load
+// Log configuration on module load (safe - no jose import here)
 logger.info('🔑 JWKS Token Verifier Configuration:');
 logger.info(`   JWKS URL: ${MS_AUTH_JWKS_URL}`);
 logger.info(`   Expected Issuer: ${JWT_EXPECTED_ISS}`);
