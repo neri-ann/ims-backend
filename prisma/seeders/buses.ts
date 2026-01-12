@@ -20,47 +20,55 @@ export async function seedBuses(prisma: PrismaClient) {
     prisma.manufacturer.findUnique({ where: { manufacturer_code: 'MFG-00002' } }),
   ]);
 
-  const buses = [
-    {
-      bus_code: 'BUS-0001', plate_number: 'PLATE-0001', body_number: 'BODY-0001', body_builder_id: bb1?.id || 1, manufacturer_id: m1?.id || 1,
-      bus_type: 'AIRCONDITIONED' as const, condition: 'BRAND_NEW' as const, status: 'ACTIVE' as const,
-      chassis_number: 'CHS-0001', engine_number: 'ENG-0001', seat_capacity: 45, model: 'X1', year_model: 2025,
-      acquisition_date: new Date(), acquisition_method: 'PURCHASED' as const, registration_status: 'REGISTERED' as const,
-      brand_new_details: { dealer_name: 'Dealer One', dealer_contact: '+63-2-111-1111' },
-      
-    },
-    {
-      bus_code: 'BUS-0002', plate_number: 'PLATE-0002', body_number: 'BODY-0002', body_builder_id: bb2?.id || 1, manufacturer_id: m2?.id || 2,
-      bus_type: 'ORDINARY' as const, condition: 'SECOND_HAND' as const, status: 'ACTIVE' as const,
-      chassis_number: 'CHS-0002', engine_number: 'ENG-0002', seat_capacity: 40, model: 'S2', year_model: 2018,
-      acquisition_date: new Date(Date.now() - 365 * 24 * 60 * 60 * 1000), acquisition_method: 'PURCHASED' as const, registration_status: 'NEEDS_RENEWAL' as const,
-      second_hand_details: { previous_owner: 'Old Operator Co.', previous_owner_contact: '+63-917-222-2222', source: 'COMPANY_FLEET' as const, odometer_reading: '120000.00' },
-    },
-    {
-      bus_code: 'BUS-0003', plate_number: 'PLATE-0003', body_number: 'BODY-0003', body_builder_id: bb1?.id || 1, manufacturer_id: m2?.id || 2,
-      bus_type: 'AIRCONDITIONED' as const, condition: 'SECOND_HAND' as const, status: 'UNDER_MAINTENANCE' as const,
-      chassis_number: 'CHS-0003', engine_number: 'ENG-0003', seat_capacity: 48, model: 'X2', year_model: 2020,
-      acquisition_date: new Date(Date.now() - 2 * 365 * 24 * 60 * 60 * 1000), acquisition_method: 'PURCHASED' as const, registration_status: 'REGISTERED' as const,
-      second_hand_details: { previous_owner: 'Jane Doe', previous_owner_contact: '+63-918-333-3333', source: 'AUCTION' as const, odometer_reading: '80000.00' },
-    },
-    {
-      bus_code: 'BUS-0004', plate_number: 'PLATE-0004', body_number: 'BODY-0004', body_builder_id: bb2?.id || 2, manufacturer_id: m1?.id || 1,
-      bus_type: 'ORDINARY' as const, condition: 'BRAND_NEW' as const, status: 'ACTIVE' as const,
-      chassis_number: 'CHS-0004', engine_number: 'ENG-0004', seat_capacity: 42, model: 'Z3', year_model: 2025,
-      acquisition_date: new Date(), acquisition_method: 'PURCHASED' as const, registration_status: 'REGISTERED' as const,
-      brand_new_details: { dealer_name: 'Dealer B', dealer_contact: '+63-2-222-2222' },
-    },
-  ];
+  // Generate 20 buses with unique values
+  const buses = Array.from({ length: 20 }, (_, i) => {
+    const n = i + 1;
+    const isEven = n % 2 === 0;
+    return {
+      bus_code: `BUS-${n.toString().padStart(4, '0')}`,
+      plate_number: `PLATE-${n.toString().padStart(4, '0')}`,
+      body_number: `BODY-${n.toString().padStart(4, '0')}`,
+      body_builder_id: isEven ? (bb2?.id || 2) : (bb1?.id || 1),
+      manufacturer_id: isEven ? (m2?.id || 2) : (m1?.id || 1),
+      bus_type: isEven ? 'ORDINARY' : 'AIRCONDITIONED',
+      condition: isEven ? 'SECOND_HAND' : 'BRAND_NEW',
+      status: n % 3 === 0 ? 'UNDER_MAINTENANCE' : 'ACTIVE',
+      chassis_number: `CHS-${n.toString().padStart(4, '0')}`,
+      engine_number: `ENG-${n.toString().padStart(4, '0')}`,
+      seat_capacity: 40 + (n % 10),
+      model: `Model${String.fromCharCode(65 + (n % 5))}`,
+      year_model: 2020 + (n % 6),
+      acquisition_date: new Date(Date.now() - n * 30 * 24 * 60 * 60 * 1000),
+      acquisition_method: 'PURCHASED',
+      registration_status: isEven ? 'NEEDS_RENEWAL' : 'REGISTERED',
+      created_by: 'seeder',
+      ...(isEven
+        ? { second_hand_details: { previous_owner: `Owner ${n}`, previous_owner_contact: `+63-900-000-00${n.toString().padStart(2, '0')}`, source: 'COMPANY_FLEET', odometer_reading: `${100000 + n * 1000}` } }
+        : { brand_new_details: { dealer_name: `Dealer ${n}`, dealer_contact: `+63-2-100-10${n.toString().padStart(2, '0')}` } }
+      ),
+    };
+  });
+// Allow direct execution
+if (require.main === module) {
+  const prisma = new PrismaClient();
+  seedBuses(prisma)
+    .then(() => prisma.$disconnect())
+    .catch(e => {
+      console.error(e);
+      prisma.$disconnect();
+      process.exit(1);
+    });
+}
 
   let created = 0;
 
+  let updated = 0;
+
   for (const b of buses) {
     const exists = await prisma.bus.findUnique({ where: { plate_number: b.plate_number } });
-    if (exists) continue;
 
-    const nested: any = {
+    const baseData: any = {
       bus_code: b.bus_code,
-      plate_number: b.plate_number,
       body_number: b.body_number,
       body_builder_id: b.body_builder_id,
       manufacturer_id: b.manufacturer_id,
@@ -78,12 +86,38 @@ export async function seedBuses(prisma: PrismaClient) {
       created_by: 'seeder',
     };
 
-    if (b.brand_new_details) nested.brand_new_details = { create: b.brand_new_details };
-    if (b.second_hand_details) nested.second_hand_details = { create: b.second_hand_details };
+    let busRecord: any;
+    if (exists) {
+      busRecord = await prisma.bus.update({ where: { id: exists.id }, data: baseData });
+      updated++;
+    } else {
+      busRecord = await prisma.bus.create({ data: { plate_number: b.plate_number, ...baseData } });
+      created++;
+    }
 
-    await prisma.bus.create({ data: nested });
-    created++;
+    // Upsert details depending on condition
+    if (b.brand_new_details) {
+      await prisma.brand_new_details.upsert({
+        where: { bus_id: busRecord.id },
+        update: { ...b.brand_new_details },
+        create: { bus_id: busRecord.id, ...b.brand_new_details },
+      });
+    }
+
+    if (b.second_hand_details) {
+      await prisma.second_hand_details.upsert({
+        where: { bus_id: busRecord.id },
+        update: { ...b.second_hand_details },
+        create: { bus_id: busRecord.id, ...b.second_hand_details },
+      });
+    }
   }
 
-  console.log(`    ✅ Created ${created} buses (and nested details)`);
+  console.log(`    ✅ Created ${created} buses, updated ${updated} buses (and nested details)`);
+  if (created > 0) {
+    console.log('✅ Bus seeding completed successfully!');
+  } else {
+    console.log('✅ No new buses created (all already exist)');
+  }
 }
+

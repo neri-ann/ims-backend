@@ -27,6 +27,23 @@ export async function seedDisposals(prisma: PrismaClient) {
     candidates.push({ disposal_code: 'DISP-00003', bus: { connect: { id: buses[0].id } }, disposal_date: new Date(Date.now() - 365*24*60*60*1000), disposal_method: 'FOR_SALE', description: 'Decommissioned unit sold', created_by: 'seeder' });
   }
 
+  // Add more bus disposals with PENDING status
+  if (buses[1]) {
+    candidates.push({ disposal_code: 'DISP-BUS-0001', bus: { connect: { id: buses[1].id } }, disposal_date: new Date(Date.now() - 30*24*60*60*1000), disposal_method: 'SCRAPPED', description: 'Bus scrapped due to damage', created_by: 'seeder' });
+  }
+
+  if (buses[2]) {
+    candidates.push({ disposal_code: 'DISP-BUS-0002', bus: { connect: { id: buses[2].id } }, disposal_date: new Date(Date.now() - 60*24*60*60*1000), disposal_method: 'FOR_SALE', description: 'Selling old bus', created_by: 'seeder' });
+  }
+
+  if (buses[3]) {
+    candidates.push({ disposal_code: 'DISP-BUS-0003', bus: { connect: { id: buses[3].id } }, disposal_date: new Date(Date.now() - 90*24*60*60*1000), disposal_method: 'DONATED', description: 'Donated to charity', created_by: 'seeder' });
+  }
+
+  if (buses[4]) {
+    candidates.push({ disposal_code: 'DISP-BUS-0004', bus: { connect: { id: buses[4].id } }, disposal_date: new Date(Date.now() - 120*24*60*60*1000), disposal_method: 'WRITTEN_OFF', description: 'Written off due to age', created_by: 'seeder' });
+  }
+
   if (stocks[2] && batches[2]) {
     candidates.push({ disposal_code: 'DISP-00004', stock: { connect: { id: stocks[2].id } }, batch: { connect: { id: batches[2].id } }, quantity: '1.00', disposal_date: new Date(), disposal_method: 'WRITTEN_OFF', description: 'Inventory write-off', created_by: 'seeder' });
   }

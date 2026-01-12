@@ -20,7 +20,8 @@ export const getAllBuses = async () => {
     include: {
       manufacturer: true,
       body_builder: true,
-      // Add second_hand_details and brand_new_details if they exist as relations
+      brand_new_details: true,
+      second_hand_details: true,
     },
   });
 };
